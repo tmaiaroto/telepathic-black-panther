@@ -1,0 +1,25 @@
+{
+  "name": "telepahtic-black-panther",
+  "version": "0.1.0",
+  "homepage": "https://github.com/tmaiaroto/telepahtic-black-panther",
+  "authors": [
+    "Tom Maiaroto <tom@shift8creative.com>"
+  ],
+  "description": "Automatically track events in Google Analytics based on your web site's content and UI.",
+  "main": "dist/telepathic-black-panther.min.js",
+  "keywords": [
+    "analytics",
+    "google",
+    "analytics",
+    "events",
+    "tracking"
+  ],
+  "license": "Apache V2",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
