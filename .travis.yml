@@ -1,0 +1,11 @@
+language: node_js
+node_js:
+- '0.11'
+- '0.10'
+env:
+  global:
+    - secure: yqzLxoNiOFdukQV07JrVqy4awTwWLlm4k9K55E/8y7FCAuXomk40YkslO281DaIWNuH69HMzeDw3lRa2iK4NFiNjH1EYZFeiUDpy7vWy8/63MQWTnKYctJ4yhTPzBiK9DLz78A5QjwnXt6qireQphtrE1HEk1+yQEKf7w9OqcN0=
+    - secure: B3P58eGdiowaOaIMxxvWosk99GvWu7/bpRJ3fvy5PNzgm8kn7nmpgO1lUI1gVtpLTBixCjvWemcjaPFq571qQiNjPgnibXxLYLxbxIO79RTTloXu9o7GTdyBf0cydJ1zz1VJn5Wwz4fXntmYGkpJ1jOteJB1qyqAtJSjiRH67II=
+notifications:
+  email: false
+before_script: npm install -g karma-cli
