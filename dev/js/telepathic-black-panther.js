@@ -6,14 +6,14 @@ module.exports = {
 	 * 
 	 * @type {Date}
 	*/
-	loadTime: new Date().getTime(),
+	loadTime: (new Date()).getTime(),
 	/**
 	 * Returns how long it's been since this script was loaded.
 	 * 
 	 * @return {number} Time elapsed in miliseconds
 	*/
 	timeSinceLoad: function() {
-		return (new Date().getTime() - this.loadTime);
+		return ((new Date()).getTime() - this.loadTime);
 	},
 	/**
 	 * Just a wrapper around Google Analytics ga() with some defaults and a check 

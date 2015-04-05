@@ -1,7 +1,7 @@
 Telepathic Black Panther
 ---------
 
-[![Build Status](https://travis-ci.org/tmaiaroto/telepahtic-black-panther.svg?branch=master)](https://travis-ci.org/tmaiaroto/telepahtic-black-panther)
+[![Build Status](https://travis-ci.org/tmaiaroto/telepahtic-black-panther.svg?branch=master)](https://travis-ci.org/tmaiaroto/telepahtic-black-panther) [![Code Climate](https://codeclimate.com/github/tmaiaroto/telepahtic-black-panther/badges/gpa.svg)](https://codeclimate.com/github/tmaiaroto/telepahtic-black-panther) [![Test Coverage](https://codeclimate.com/github/tmaiaroto/telepahtic-black-panther/badges/coverage.svg)](https://codeclimate.com/github/tmaiaroto/telepahtic-black-panther)
 
 This handy JavaScript utility can be easily placed on your web pages to automatically report various events and extra detail to Google (universal) Analytics. 
 
