@@ -19,7 +19,7 @@ module.exports = function(config) {
       base: 'SauceLabs',
       browserName: 'chrome'
     },
-    'SL_Firefox': {
+    'SL_InternetExplorer': {
       base: 'SauceLabs',
       browserName: 'internet explorer',
       version: '9'
@@ -43,13 +43,18 @@ module.exports = function(config) {
       'test/*.js'
     ],
 
-    preprocessors: { 'src/*.js': ['browserify'] },
+    preprocessors: { 'src/*.js': ['browserify', 'coverage'] },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['dots', 'saucelabs'],
+    reporters: ['dots', 'saucelabs', 'coverage'],
 
+    coverageReporter: {
+      type: 'lcovonly',
+      dir: 'coverage/',
+      file: 'lcov.info'
+    },
 
     // web server port
     port: 9876,
