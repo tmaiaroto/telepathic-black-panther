@@ -33,7 +33,7 @@ module.exports = function(grunt) {
 		},
 		watch: {
 			files: ['<%= jshint.files %>'],
-			tasks: ['browserify:dev','jshint','karma:phantom'],
+			tasks: ['browserify:dev','jshint','karma:unit'],
 			options: {
 				livereload: true,
 			}
@@ -42,13 +42,8 @@ module.exports = function(grunt) {
 			unit: {
 				configFile: 'karma.conf.js'
 			},
-			phantom: {
-				configFile: 'karma.conf.js',
-				singleRun: true,
-				browsers: ['PhantomJS']
-			},
-			ci: {
-				configFile: 'karma.conf-ci.js'
+			sauce: {
+				configFile: 'karma.conf-sauce.js'
 			}
 		},
 		express: {
@@ -77,9 +72,8 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-express');
 
 	grunt.registerTask('default', ['jshint']);
-	grunt.registerTask('test', ['jshint', 'karma']);
-	grunt.registerTask('test-phantom', ['jshint', 'karma:phantom']);
-	grunt.registerTask('test-ci', ['jshint', 'karma:ci']);
+	grunt.registerTask('test', ['jshint', 'karma:unit']);
+	grunt.registerTask('test-sauce', ['karma:sauce']);
 	grunt.registerTask('build', ['browserify:dist','browserify:dev','uglify']);
 
 	grunt.registerTask('dev', ['browserify:dev', 'express', 'open:devserver', 'watch']);	

@@ -1,4 +1,5 @@
 var fs = require('fs');
+var istanbul = require('browserify-istanbul');
 
 module.exports = function(config) {
 
@@ -19,10 +20,15 @@ module.exports = function(config) {
       base: 'SauceLabs',
       browserName: 'chrome'
     },
-    'SL_InternetExplorer': {
+    'SL_InternetExplorer9': {
       base: 'SauceLabs',
       browserName: 'internet explorer',
       version: '9'
+    },
+    'SL_InternetExplorer8': {
+      base: 'SauceLabs',
+      browserName: 'internet explorer',
+      version: '8'
     }
   };
 
@@ -39,11 +45,19 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'src/*.js',
+      //'src/*.js',
       'test/*.js'
     ],
 
-    preprocessors: { 'src/*.js': ['browserify', 'coverage'] },
+    //preprocessors: { 'src/*.js': ['browserify', 'coverage'] },
+    preprocessors: { 'test/**/*.js': ['browserify'], 'src/**/*.js': ['coverage'] },
+
+    browserify: {
+      debug: true,
+      transform: [istanbul({
+        ignore: ['**/node_modules/**', '**/test/**'],
+      })],
+    },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'

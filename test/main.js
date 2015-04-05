@@ -1,3 +1,4 @@
+Tbp = require('../src/main.js');
 var panther = new Tbp();
 
 describe('timeSinceLoad', function () {
@@ -15,5 +16,13 @@ describe('gaProxy', function () {
 describe('event', function () {
     it('should be function', function () {
         expect(typeof(panther.event)).toMatch('function');
+    });
+
+    it('should return false', function () {
+        expect(panther.event()).toBeFalsy();
+    });
+
+    it('should return', function () {
+        expect(panther.event({label: "test"})).toBeFalsy();
     });
 });

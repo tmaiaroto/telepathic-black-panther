@@ -2,5 +2,5 @@
 set -ev
 for file in ./coverage/*/*.info
 do
- cat "$file" | codeclimate
+ codeclimate < "$file"
 done

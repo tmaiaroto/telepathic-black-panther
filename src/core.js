@@ -33,7 +33,7 @@ module.exports = {
 	*/
 	event: function(opts) {
 		opts = this.extend(this.opts, opts);
-		if(opts.label !== "") {
+		if(opts.label !== "" && opts.label !== null) {
 			return this.ga('send', 'event', opts.category, opts.action, opts.label, opts.value);
 		}
 		return false;
