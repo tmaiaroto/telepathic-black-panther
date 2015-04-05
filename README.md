@@ -1,13 +1,15 @@
 Telepathic Black Panther
 ---------
 
-This handy JavaScript utility can be easily placed on your web pages to automatically report various events and extra detail to Google Analytics. 
+[![Build Status](https://travis-ci.org/tmaiaroto/telepahtic-black-panther.svg?branch=master)](https://travis-ci.org/tmaiaroto/telepahtic-black-panther)
+
+This handy JavaScript utility can be easily placed on your web pages to automatically report various events and extra detail to Google (universal) Analytics. 
 
 It's "telepathic" in the sense that it uses logic to understand your web site and user behavior. It knows what you and your visitors are thinking. 
 Then of course what do black panthers do best? Stalk! We're talking about analytics and trakcing here people.
 
 In all seriousness, this script should provide you with a great set of basic events and then will also serve as a convenient wrapper around 
-Google Analytics so you can easily track even more information specific to your needs.
+Google (universal) Analytics so you can easily track even more information specific to your needs.
 
 ### Common events tracked
 
@@ -17,7 +19,8 @@ There are some basic events out of the box that will be tracked if your page mee
 on the page along with how far down the visitor scrolled.
 * **form abandonment** If a visitor starts filling out a form, but then doesn't finish before leaving.
 * **slow form response** If a vistor takes a long time to fill out a form. This could mean they are debating something or having trouble for some reason.
-
+* **exit to** Shows where visitors are exiting to (determined by last outbound link they clicked)
+* **outbound** Links being clicked that aren't your site's pages
 
 ### How do I get my own Telepathic Black Panther?
 
