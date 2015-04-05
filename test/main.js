@@ -11,3 +11,9 @@ describe('gaProxy', function () {
         expect(typeof(panther.ga)).toMatch('function');
     });
 });
+
+describe('event', function () {
+    it('should be function', function () {
+        expect(typeof(panther.event)).toMatch('function');
+    });
+});

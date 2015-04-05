@@ -61,7 +61,7 @@ module.exports = function(config) {
     logLevel: config.LOG_INFO,
 
     sauceLabs: {
-      testName: 'Karma and Sauce Labs demo'
+      testName: 'Telepathic Black Panther'
     },
     captureTimeout: 120000,
     customLaunchers: customLaunchers,

@@ -1,21 +1,26 @@
 (function() {
 	window.Tbp = (function() {
 		var defaults = {
-	      pageName: "page",
-	      siteName: "site",
-	      category: "object",
-	      action: "click",
-	      label: null,
-	      value: null
-	    };
+			// For events
+			category: "object",
+			action: "click",
+			label: null,
+			value: null,
+			// Visitor info
+			clientId: null,
+		};
 
-	    function Tbp(opts) {
-	    	if (typeof window.ga === "undefined") {
+		function Tbp(opts) {
+			if (typeof window.ga === "undefined") {
 				console.warn("Google Analytics not found.");
 				this.ga = function(){};
 			} else {
 				this.ga = window.ga;
 			}
+
+			this.ga(function(tracker) {
+				defaults.clientId = tracker.get('clientId');
+			});
 
 			// Extend defaults with options.
 			this.opts = this.extend(defaults, opts);
@@ -39,12 +44,14 @@
 				}
 				return arguments[0];
 			}
-	    };
+		};
 
-	    Tbp.prototype.extend(Tbp.prototype, require('./core.js'));
-	    Tbp.prototype.extend(Tbp.prototype, require('./social.js'));
+		// Merge from modules
+		Tbp.prototype.extend(Tbp.prototype, require('./core.js'));
+		Tbp.prototype.extend(Tbp.prototype, require('./social.js'));
+		Tbp.prototype.extend(Tbp.prototype, require('./ki.ie8.js'));
 
-	    return Tbp;
+		return Tbp;
 	})();
 	module.exports = Tbp;
 })();

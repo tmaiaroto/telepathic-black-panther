@@ -13,8 +13,12 @@ module.exports = function(grunt) {
 		// },
 		browserify: {
 			dist: {
+				src: ['src/**/*.js'],
+				dest: 'dist/<%= pkg.name %>.js'
+			},
+			dev: {
 				files: {
-					'dist/<%= pkg.name %>.js': ['src/**/*.js'],
+					'dev/js/<%= pkg.name %>.js': ['src/**/*.js'],
 				}
 			}
 		},
@@ -24,7 +28,7 @@ module.exports = function(grunt) {
 			},
 			dist: {
 				files: {
-					'dist/<%= pkg.name %>.min.js': ['<%= concat.dist.dest %>']
+					'dist/<%= pkg.name %>.min.js': ['<%= browserify.dist.dest %>']
 				}
 			}
 		},
@@ -38,7 +42,10 @@ module.exports = function(grunt) {
 		},
 		watch: {
 			files: ['<%= jshint.files %>'],
-			tasks: ['jshint','browserify:dist','karma:phantom']
+			tasks: ['browserify:dev','jshint','karma:phantom'],
+			options: {
+				livereload: true,
+			}
 		},
 		karma: {
 			unit: {
@@ -83,7 +90,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('test', ['jshint', 'karma']);
 	grunt.registerTask('test-phantom', ['jshint', 'karma:phantom']);
 	grunt.registerTask('test-ci', ['jshint', 'karma:ci']);
-	grunt.registerTask('build', ['browserify:dist', 'uglify']);
+	grunt.registerTask('build', ['browserify:dist','browserify:dev','uglify']);
 
-	grunt.registerTask('dev', ['express', 'open:devserver', 'watch']);	
+	grunt.registerTask('dev', ['browserify:dev', 'express', 'open:devserver', 'watch']);	
 };

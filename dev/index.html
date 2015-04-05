@@ -18,7 +18,8 @@
 			<script src="http://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js"></script>
 		<![endif]-->
 
-		<script type="text/javascript" src="telepathic-black-panther.js"></script>
+		<script type="text/javascript" src="js/telepathic-black-panther.js"></script>
+
 		<title>Telepathic Black Panther</title>
 	</head>
 	<body>
@@ -31,7 +32,7 @@
 			<div class="information pure-g">
 				<div class="pure-u-1 pure-u-md-1-2">
 					<div class="l-box">
-						<h3 class="information-head">Get started today</h3>
+						<h3 class="information-head">It Stalks</h3>
 						<p>
 							Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.
 						</p>
@@ -85,6 +86,9 @@
 		ga('send', 'pageview');
 
 		var panther = new Tbp();
-		</script>		
+
+		panther.$('a').on('click', function(){ alert('cleek'); });
+		</script>
+		<script src="//localhost:35729/livereload.js"></script>
 	</body>
 </html>
