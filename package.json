@@ -8,7 +8,7 @@
   },
   "main": "karma.conf-sauce.js",
   "scripts": {
-    "test": "grunt test-sauce",
+    "test": "karma start karma.conf-sauce.js",
     "postinstall": "node install.js"
   },
   "author": "Tom Maiaroto",
