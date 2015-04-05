@@ -10,4 +10,4 @@ notifications:
   email: false
 before_script: npm install -g karma-cli
 after_script:
-  - cat coverage/lcov.info | codeclimate
+  - ./report_to_codeclimate.sh
