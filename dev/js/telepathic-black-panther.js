@@ -1,5 +1,66 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /**
+ * Figures things out.
+*/
+module.exports = {
+	/**
+	 * Returns the word count for any given page based on the paragraph elements.
+	 * This cuts out a lot of noise, though not every page uses paragraph tags (silly) and 
+	 * sometimes pages use paragraph tags within the footer or header or even navigation menus. 
+	 * So this function also has a simple threshold for what gets counted or not based on 
+	 * a minimum number of words.
+	 *
+	 * Note: All of the word count functions are approximations, so the use case should  
+	 * be something that works well with such approximations.
+	 *
+	 * @param {number} minWords Minimum number of words required to count toward overall page word count
+	 * @param {number} minChars Minimum number of characters required to count a word as a word (exclude "a", "and", "or" etc.)
+	 * @return {number} The word count
+	 */
+	paragraphPageWordCount: function(minWords, minChars) {
+		minWords = (typeof(minWords) !== 'number') ? 2:minWords;
+		minChars = (typeof(minChars) !== 'number') ? 3:minChars;
+		var pageWordCount = 0;
+		$ki('p').each(function(el) {
+			var pText = el.innerText || el.textContent || "";
+			var pWords = pText.split(/\s+/);
+			var pWordCount = pWords.length;
+			for(var w in pWords) {
+				// Discount if the word is too short.
+				if(pWords[w].length < minChars) {
+					pWordCount -= 1;
+				}
+			}
+			// Count if the paragraph element's contents meets the minimum number of words.
+			if(pWordCount > minWords) {
+				pageWordCount += pWordCount;
+			}
+		});
+		return pageWordCount;
+	},
+	/**
+	 * A more simple approach to counting the words on a page.
+	 * 
+	 * @return {number} The word count
+	 */
+	pageWordCount: function(discountedSelectors) {
+		// discount obvious selectors (so we don't count text in the footer, nav, navbar, etc.)
+		discountedSelectors = (typeof(discountedSelectors) !== 'object') ? ['.footer', '.navbar', '.nav', '.header', '.ad', '.advertisement']:discountedSelectors;
+		
+		var bodyInnerText = $ki('body')[0].innerText || $ki('body')[0].textContent || "";
+		var bodyWordCount = bodyInnerText.split(/\s+/).length;
+		for(var i in discountedSelectors) {
+			s = discountedSelectors[i];
+			if($ki(s)[0] !== undefined) {
+				var t = ($ki(s)[0].innerText || $ki(s)[0].textContent || "");
+				bodyWordCount -= t.split(/\s+/).length;
+			}
+		}
+		return bodyWordCount;
+	}
+};
+},{}],2:[function(require,module,exports){
+/**
  * auto_detect.js is responsible for automatically detecting the proper events to track for any given page.
  * It calls functions within Tbp as necessary by analyzing what's on the page.
  * 
@@ -7,11 +68,49 @@
 module.exports = {
 	autoDetectEvents: function() {
 		if(this.opts.debug === true) {
-			console.dir('TODO: analyze the page.');
+			console.dir('Tbp.autoDetectEvents() Analyzing the page to watch for events');
 		}
+		var tbpContext = this;
+
+		// Detect outbound link clicks.
+		$ki('a').on('click', function(e) {
+			// TODO: Detect social share URLs and discount those when tracking outbound links. Those will get tracked under social.js as shares using a different GA method.
+			
+			// If the link is not opening in another window or frame, etc. then stop propagation. 
+			// Otherwise, there might not be enough time to record the event.
+			if(this.target !== '_blank') {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+
+			if((this.href).substr(0, 4).toLowerCase() == 'http') {
+				tbpContext.linkOut({
+					"url": this.href,
+					"trackDomainOnly": true,
+					// Return the URL, stopping the redirect in the linkOut() function if opening in a new window.
+					// Otherwise if the link is opening in a new window, there's no reason to redirect and the event will 
+					// be recorded because there's plenty of time on the page still.
+					"returnUrl": (this.target === '_blank')
+				});
+			}
+		});
+
+		// Detect full page read.
+		var count = tbpContext.paragraphPageWordCount();
+		console.dir(count);
+		
+		//console.dir(bodyInnerText);
+		//console.dir(bodyWordCount);
+
+		// now look again at all text div by div on the page. 
+		// discount anything with small amounts of text
+		
+
+
+		tbpContext.read();
 	}
 };
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 module.exports = {
 	/**
 	 * In miliseconds, when this script has loaded. Not quite on DOM ready, but close.
@@ -53,7 +152,7 @@ module.exports = {
 		return false;
 	}
 };
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /**
  * The engagement.js module includes functions that track events related to engagement.
  * How are visitors engaging with a page? Are they reading the content? Commenting?
@@ -72,6 +171,8 @@ module.exports = {
 	 *         action:   The Google Analytics Event action (likely no reason to change this given what the function is for).
 	 *         label:    The Google Analytics Event label (useful for categorizing events).
 	 *         debug: 	 Logs information to the console
+	 *         xMin: 	 The minimum amount of the element to be visible in the viewport to count (if the selector is "body" then this can't be set and will be bottom of page)
+	 *         yMin: 	 The minimum amount of the element to be visible in the viewport to count (if the selector is "body" then this can't be set and will be bottom of page)
 	*/
 	read: function(opts, onSend) {
 		opts = this.extend({
@@ -110,12 +211,15 @@ module.exports = {
 					if(opts.debug) {
 						console.log("Tbp.read() Logging page read event");
 					}
-					// There is no response from GA so we can't tell if this was really successful...
-					ga('send', 'event', opts.category, opts.action, opts.label);
+					ga('send', {
+						'hitType': 'event',
+						'eventCategory': opts.category,
+						'eventAction': opts.action,
+						'eventLabel': opts.label,
+						'hitCallback': onSend(opts)
+					});
 				}
 				sentEvent = true;
-				// ...but we can assume it sent and return
-				return onSend(opts);
 			}
 		},(2*1000));
 
@@ -140,9 +244,101 @@ module.exports = {
 			}
 		});
 
+	},
+	/**
+	 * Tracks a click on a link/button that takes a user away from the page.
+	 * This ensures the hit is recorded before directing the user onward.
+	 * NOTE: Web crawlers will still rely on the "href" attribute being an actual URL.
+	 * If this function is used without that attribute, then web crawlers may not properly index 
+	 * those linked pages (which may not matter if they are not on the same domain anyway).
+	 * So use the "onClick" attribute to call this function instead or register an event listener.
+	 *
+	 * Kept under engagement.js, though this is kind of a disengagement, right?
+	 * 
+	 * @param  {Object} opts
+	 *         url: 			The URL to redirect to once done tracking
+	 *         returnUrl: 		Just return the URL and don't actually redirect
+	 *         trackDomainOnly: Just send the domain name to Google Analytics as the label instead of the full URL
+	 *         category: 		The Google Analytics Event category
+	 *         action: 			The Google Analytics Event action
+	 *         label: 			The Google Analytics Event label (optional, this will be the URL by default)
+	 *         debug: 			Logs information to the console
+	 * @return redirect
+	 */
+	linkOut: function(opts, onSend) {
+		opts = this.extend({
+			"url": "",
+			"returnUrl": false,
+			"trackDomainOnly": false,
+			"category": "outbound",
+			"action": "navigate",
+			"label": ""
+		}, opts);
+		// If not set, take from Tbp opts.
+		if(!opts.hasOwnProperty('debug')) {
+			opts.debug = this.opts.debug;
+		}
+		onSend = (onSend === undefined) ? false:onSend;
+
+		if(opts.url === "") {
+			return false;
+		}
+
+		// By default the label is going to be the link out.
+		var label = opts.url;
+		if(opts.trackDomainOnly === true) {
+			var tmp = document.createElement ('a');
+			tmp.href = opts.url;
+			label = tmp.hostname;
+		}
+		// But that can be overridden by the call by passing a label value.
+		if(opts.label !== "") {
+			label = opts.label;
+		}
+
+		ga('send', {
+			'hitType': 'event',
+			'eventCategory': opts.category,
+			'eventAction': opts.action,
+			'eventLabel': label,
+			'hitCallback':function() {
+				if(opts.debug) {
+					console.log("Tbp.linkOut() Recording outbound navigate for " + label);
+					// First, use the onComplete callback if defined (which always returns the URL).
+					if(typeof(onSend) == 'function') {
+						return onSend(opts.url);
+					}
+
+					// Then either return the URL or redirect based on the options passed.
+					if(opts.returnUrl === false) {
+						console.log("Tbp.linkOut() The user will now be redirected to " + opts.url);
+						return setTimeout(function(){
+							window.location.href = opts.url;
+						}, 5000);
+					}
+					return opts.url;
+				} else {
+					// First, use the onComplete callback if defined (which always returns the URL).
+					if(typeof(onSend) == 'function') {
+						return onSend(opts.url);
+					}
+
+					// Then either return the URL or redirect based on the options passed.
+					if(opts.returnUrl === false) {
+						window.location.href = opts.url;
+					}
+					return opts.url;
+				}
+			}
+		});
+
+		// Just in case
+		if(opts.returnUrl === true) {
+			return opts.url;
+		}
 	}
 };
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /*!
  * ki.js - jQuery-like API super-tiny JavaScript library
  * Copyright (c) 2014 Denis Ciccale (@tdecs)
@@ -231,7 +427,7 @@ module.exports = {
 /* jshint ignore:end */
 
 module.exports = $ki;
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 module.exports = {
 	first: function() {
 		return $ki(this[0]);
@@ -269,6 +465,9 @@ module.exports = {
 			};
 		});
 		return this.length > 1 ? this : this[0].offset;
+	},
+	hasClass: function(a) {
+		return this[0].classList.contains(a);
 	},
 	isOnScreen: function(x, y) {
 		if(x === null || typeof x === 'undefined') { x = 1; }
@@ -308,7 +507,7 @@ module.exports = {
 	    return (deltas.left * deltas.right) >= x && (deltas.top * deltas.bottom) >= y;
 	}
 };
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 // Make ki available as $ki not $ (to avoid jQuery conflict) and because ki.ie8.js references $ki global.
 // TODO: Maybe address that, but I don't care if there's a simple selector hanging out.
 window.$ki = require('./ki.ie8.js');
@@ -384,13 +583,14 @@ window.$ki = require('./ki.ie8.js');
 		Tbp.prototype.extend(Tbp.prototype, require('./core.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./engagement.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./social.js'));
+		Tbp.prototype.extend(Tbp.prototype, require('./analysis.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./auto_detect.js'));
 		
 		return Tbp;
 	})();
 	module.exports = Tbp;
 })();
-},{"./auto_detect.js":1,"./core.js":2,"./engagement.js":3,"./ki.ie8.js":4,"./ki.plugins.js":5,"./social.js":7}],7:[function(require,module,exports){
+},{"./analysis.js":1,"./auto_detect.js":2,"./core.js":3,"./engagement.js":4,"./ki.ie8.js":5,"./ki.plugins.js":6,"./social.js":8}],8:[function(require,module,exports){
 /**
  * The social.js module includes functions that track events related to social media.
  * For example, when visitors click social share buttons on the page.
@@ -398,4 +598,4 @@ window.$ki = require('./ki.ie8.js');
 */
 module.exports = {
 };
-},{}]},{},[1,2,3,4,5,6,7]);
+},{}]},{},[1,2,3,4,5,6,7,8]);

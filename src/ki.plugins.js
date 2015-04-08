@@ -36,6 +36,9 @@ module.exports = {
 		});
 		return this.length > 1 ? this : this[0].offset;
 	},
+	hasClass: function(a) {
+		return this[0].classList.contains(a);
+	},
 	isOnScreen: function(x, y) {
 		if(x === null || typeof x === 'undefined') { x = 1; }
 	    if(y === null || typeof y === 'undefined') { y = 1; }
