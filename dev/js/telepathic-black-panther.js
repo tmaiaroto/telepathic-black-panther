@@ -258,8 +258,8 @@ module.exports = {
 		return this.length > 1 ? this : this[0].offset;
 	},
 	isOnScreen: function(x, y) {
-		if(x === null || typeof x == 'undefined') x = 1;
-	    if(y === null || typeof y == 'undefined') y = 1;
+		if(x === null || typeof x === 'undefined') { x = 1; }
+	    if(y === null || typeof y === 'undefined') { y = 1; }
 	    
 	    var viewport = {};
 	    viewport.left = (window.pageXOffset !== undefined) ? window.pageXOffset : (document.documentElement || document.body.parentNode || document.body).scrollLeft;
