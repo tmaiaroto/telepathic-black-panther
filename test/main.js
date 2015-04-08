@@ -1,6 +1,12 @@
 Tbp = require('../src/main.js');
 var panther = new Tbp();
 
+describe('loadTime', function () {
+    it('should be greater than zero', function () {
+        expect(panther.loadTime).toBeGreaterThan(0);
+    });
+});
+
 describe('timeSinceLoad', function () {
     it('should return greater than zero', function () {
         expect(panther.timeSinceLoad()).toBeGreaterThan(0);
@@ -22,7 +28,7 @@ describe('event', function () {
         expect(panther.event()).toBeFalsy();
     });
 
-    it('should return', function () {
-        expect(panther.event({label: "test"})).toBeFalsy();
+    it('should return undefined', function () {
+        expect(panther.event({label: "test"})).toBeUndefined();
     });
 });

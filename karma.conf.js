@@ -17,12 +17,13 @@ module.exports = function(config) {
       'test/**/*.js'
     ],
 
+    //preprocessors: { 'test/**/*.js': ['browserify'], 'src/**/*.js': ['coverage'] },
     preprocessors: { 'test/**/*.js': ['browserify'], 'src/**/*.js': ['coverage'] },
 
     browserify: {
       debug: true,
       transform: [istanbul({
-        ignore: ['**/node_modules/**', '**/test/**'],
+        ignore: ['**/node_modules/**', '**/test/**', '**/src/ki.ie8.js'],
       })],
     },
 

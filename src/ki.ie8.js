@@ -4,14 +4,13 @@
  * Released under MIT license
  * Original source: https://github.com/dciccale/ki.js
  *
- * This was modified (not forked, though maybe) to keep $ out from global space.
- * The reason is to avoid conflicts with jQuery, etc.
- * Browserify is also used, so we export $ for use elsewhere.
+ * This was modified (not forked, though maybe it will be) to avoid conflicts with jQuery.
+ * $ was changed to $ki
+ * JSLint ignore comments were also added as well as a module.exports.
  * 
- * Aside from scoping, a few semicolons were added along with two returns to satify jslint warnings.
  */
-var $;
-(function (b, c, d, e, f) {
+/* jshint ignore:start */
+!function (b, c, d, e, f) {
 
   // addEventListener support?
   f = b['add' + e];
@@ -27,17 +26,17 @@ var $;
   }
 
   /*
-   * $ main function
+   * $ki main function
    * a = css selector, dom object, or function
    * http://www.dustindiaz.com/smallest-domready-ever
    * returns instance or executes function on ready
    */
-  $ = function (a) {
-    return /^f/.test(typeof a) ? /in/.test(b.readyState) ? setTimeout('$('+a+')', 9) : a() : new i(a);
+  $ki = function (a) {
+    return /^f/.test(typeof a) ? /in/.test(b.readyState) ? setTimeout('$ki('+a+')', 9) : a() : new i(a);
   };
 
   // set ki prototype
-  $[d] = i[d] = {
+  $ki[d] = i[d] = {
 
     // default length
     length: 0,
@@ -83,6 +82,7 @@ var $;
     // representation instead of an object
     splice: c.splice
   };
-})(document, [], 'prototype', 'EventListener');
+}(document, [], 'prototype', 'EventListener');
+/* jshint ignore:end */
 
-module.exports = {"$":$};
+module.exports = $ki;

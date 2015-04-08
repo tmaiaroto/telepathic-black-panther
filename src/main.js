@@ -1,6 +1,12 @@
+// Make ki available as $ki not $ (to avoid jQuery conflict) and because ki.ie8.js references $ki global.
+// TODO: Maybe address that, but I don't care if there's a simple selector hanging out.
+window.$ki = require('./ki.ie8.js');
+
 (function() {
-	window.Tbp = (function() {
+	
+	Tbp = (function() {
 		var defaults = {
+			debug: false,
 			// For events
 			category: "object",
 			action: "click",
@@ -11,6 +17,9 @@
 		};
 
 		function Tbp(opts) {
+			// Tbp() or new Tbp() will work this way.
+			if (!(this instanceof Tbp)) return new Tbp(opts);
+
 			if (typeof window.ga === "undefined") {
 				console.warn("Google Analytics not found.");
 				this.ga = function(){};
@@ -45,11 +54,20 @@
 				return arguments[0];
 			}
 		};
+		
+		// Extend ki to include some more functions.
+		Tbp.prototype.extend($ki.prototype, require('./ki.plugins.js'));
+		Tbp.prototype.$ = $ki;
+
+		// Reference it on Tbp.
+		//Tbp.prototype.$ = $ki;
+		// window.$ba = require('./balalaika.js');
 
 		// Merge from modules
 		Tbp.prototype.extend(Tbp.prototype, require('./core.js'));
+		Tbp.prototype.extend(Tbp.prototype, require('./engagement.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./social.js'));
-		Tbp.prototype.extend(Tbp.prototype, require('./ki.ie8.js'));
+		
 
 		return Tbp;
 	})();

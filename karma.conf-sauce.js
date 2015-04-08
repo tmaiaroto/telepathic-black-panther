@@ -59,7 +59,7 @@ module.exports = function(config) {
     browserify: {
       debug: true,
       transform: [istanbul({
-        ignore: ['**/node_modules/**', '**/test/**'],
+        ignore: ['**/node_modules/**', '**/test/**', '**/src/ki.ie8.js'],
       })],
     },
 

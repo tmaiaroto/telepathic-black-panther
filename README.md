@@ -1,12 +1,12 @@
 Telepathic Black Panther
 ---------
 
-[![Build Status](https://travis-ci.org/tmaiaroto/telepahtic-black-panther.svg?branch=master)](https://travis-ci.org/tmaiaroto/telepahtic-black-panther) [![Code Climate](https://codeclimate.com/github/tmaiaroto/telepahtic-black-panther/badges/gpa.svg)](https://codeclimate.com/github/tmaiaroto/telepahtic-black-panther) [![Test Coverage](https://codeclimate.com/github/tmaiaroto/telepahtic-black-panther/badges/coverage.svg)](https://codeclimate.com/github/tmaiaroto/telepahtic-black-panther)
+[![Build Status](https://travis-ci.org/tmaiaroto/telepathic-black-panther.svg?branch=master)](https://travis-ci.org/tmaiaroto/telepathic-black-panther) [![Test Coverage](https://codeclimate.com/github/tmaiaroto/telepathic-black-panther/badges/coverage.svg)](https://codeclimate.com/github/tmaiaroto/telepathic-black-panther) [![Code Climate](https://codeclimate.com/github/tmaiaroto/telepathic-black-panther/badges/gpa.svg)](https://codeclimate.com/github/tmaiaroto/telepathic-black-panther)
 
 This handy JavaScript utility can be easily placed on your web pages to automatically report various events and extra detail to Google (universal) Analytics. 
 
 It's "telepathic" in the sense that it uses logic to understand your web site and user behavior. It knows what you and your visitors are thinking. 
-Then of course what do black panthers do best? Stalk! We're talking about analytics and trakcing here people.
+Then of course what do black panthers do best? Stalk! We're talking about analytics and tracking after all.
 
 In all seriousness, this script should provide you with a great set of basic events and then will also serve as a convenient wrapper around 
 Google (universal) Analytics so you can easily track even more information specific to your needs.
