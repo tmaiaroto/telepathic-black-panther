@@ -7,6 +7,7 @@ window.$ki = require('./ki.ie8.js');
 	Tbp = (function() {
 		var defaults = {
 			debug: false,
+			autoDetect: true,
 			// For events
 			category: "object",
 			action: "click",
@@ -33,6 +34,11 @@ window.$ki = require('./ki.ie8.js');
 
 			// Extend defaults with options.
 			this.opts = this.extend(defaults, opts);
+
+			if(this.opts.autoDetect === true) {
+				this.autoDetectEvents();
+			}
+
 			return this;
 		}
 
@@ -67,8 +73,8 @@ window.$ki = require('./ki.ie8.js');
 		Tbp.prototype.extend(Tbp.prototype, require('./core.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./engagement.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./social.js'));
+		Tbp.prototype.extend(Tbp.prototype, require('./auto_detect.js'));
 		
-
 		return Tbp;
 	})();
 	module.exports = Tbp;

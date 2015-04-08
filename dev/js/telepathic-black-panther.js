@@ -1,4 +1,15 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/**
+ * auto_detect.js is responsible for automatically detecting the proper events to track for any given page.
+ * It calls functions within Tbp as necessary by analyzing what's on the page.
+ * 
+*/
+module.exports = {
+	autoDetectEvents: function() {
+		console.dir('TODO: analyze the page.');
+	}
+};
+},{}],2:[function(require,module,exports){
 module.exports = {
 	/**
 	 * In miliseconds, when this script has loaded. Not quite on DOM ready, but close.
@@ -40,7 +51,7 @@ module.exports = {
 		return false;
 	}
 };
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 /**
  * The engagement.js module includes functions that track events related to engagement.
  * How are visitors engaging with a page? Are they reading the content? Commenting?
@@ -129,7 +140,7 @@ module.exports = {
 
 	}
 };
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /*!
  * ki.js - jQuery-like API super-tiny JavaScript library
  * Copyright (c) 2014 Denis Ciccale (@tdecs)
@@ -218,7 +229,7 @@ module.exports = {
 /* jshint ignore:end */
 
 module.exports = $ki;
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 module.exports = {
 	first: function() {
 		return $ki(this[0]);
@@ -295,7 +306,7 @@ module.exports = {
 	    return (deltas.left * deltas.right) >= x && (deltas.top * deltas.bottom) >= y;
 	}
 };
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 // Make ki available as $ki not $ (to avoid jQuery conflict) and because ki.ie8.js references $ki global.
 // TODO: Maybe address that, but I don't care if there's a simple selector hanging out.
 window.$ki = require('./ki.ie8.js');
@@ -305,6 +316,7 @@ window.$ki = require('./ki.ie8.js');
 	Tbp = (function() {
 		var defaults = {
 			debug: false,
+			autoDetect: true,
 			// For events
 			category: "object",
 			action: "click",
@@ -331,6 +343,11 @@ window.$ki = require('./ki.ie8.js');
 
 			// Extend defaults with options.
 			this.opts = this.extend(defaults, opts);
+
+			if(this.opts.autoDetect === true) {
+				this.autoDetectEvents();
+			}
+
 			return this;
 		}
 
@@ -365,13 +382,13 @@ window.$ki = require('./ki.ie8.js');
 		Tbp.prototype.extend(Tbp.prototype, require('./core.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./engagement.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./social.js'));
+		Tbp.prototype.extend(Tbp.prototype, require('./auto_detect.js'));
 		
-
 		return Tbp;
 	})();
 	module.exports = Tbp;
 })();
-},{"./core.js":1,"./engagement.js":2,"./ki.ie8.js":3,"./ki.plugins.js":4,"./social.js":6}],6:[function(require,module,exports){
+},{"./auto_detect.js":1,"./core.js":2,"./engagement.js":3,"./ki.ie8.js":4,"./ki.plugins.js":5,"./social.js":7}],7:[function(require,module,exports){
 /**
  * The social.js module includes functions that track events related to social media.
  * For example, when visitors click social share buttons on the page.
@@ -379,4 +396,4 @@ window.$ki = require('./ki.ie8.js');
 */
 module.exports = {
 };
-},{}]},{},[1,2,3,4,5,6]);
+},{}]},{},[1,2,3,4,5,6,7]);
