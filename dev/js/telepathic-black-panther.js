@@ -6,7 +6,9 @@
 */
 module.exports = {
 	autoDetectEvents: function() {
-		console.dir('TODO: analyze the page.');
+		if(this.opts.debug === true) {
+			console.dir('TODO: analyze the page.');
+		}
 	}
 };
 },{}],2:[function(require,module,exports){
