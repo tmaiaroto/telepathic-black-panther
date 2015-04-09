@@ -40,7 +40,8 @@ module.exports = {
 	},
 	/**
 	 * A more simple approach to counting the words on a page.
-	 * 
+	 *
+	 * @param {array} discountedSelectors A list of selectors to discount
 	 * @return {number} The word count
 	 */
 	pageWordCount: function(discountedSelectors) {
@@ -57,6 +58,32 @@ module.exports = {
 			}
 		}
 		return bodyWordCount;
+	},
+	/**
+	 * Estimates reading time in minutes.
+	 *
+	 * @param {number} wpm The number
+	 * @param {mixed} w The number of words or a string
+	 * @return {number} The estimated time, in minutes, to read
+	 */
+	readTime: function(w, wpm) {
+		wpm = (typeof(wpm) !== 'number') ? 250:wpm;
+		wpm = wpm < 1 ? 1:wpm; // no divide by zero. no, don't disassemble number 5.
+		var readTime = 0;
+		var wc = 0;
+		if(w !== undefined) {
+			switch(typeof(w)) {
+				case 'string':
+					wc = w.split(/\s+/).length;
+				break;
+				case 'number':
+					wc = w;
+				break;
+			}
+			readTime = wc / wpm;
+		}
+		
+		return readTime;
 	}
 };
 },{}],2:[function(require,module,exports){
@@ -96,18 +123,11 @@ module.exports = {
 		});
 
 		// Detect full page read.
-		var count = tbpContext.paragraphPageWordCount();
-		console.dir(count);
-		
-		//console.dir(bodyInnerText);
-		//console.dir(bodyWordCount);
+		var count = tbpContext.analysis.paragraphPageWordCount();
+		tbpContext.read({
+			minTime: (tbpContext.analysis.readTime(count) * 60)
+		});
 
-		// now look again at all text div by div on the page. 
-		// discount anything with small amounts of text
-		
-
-
-		tbpContext.read();
 	}
 };
 },{}],3:[function(require,module,exports){
@@ -583,8 +603,10 @@ window.$ki = require('./ki.ie8.js');
 		Tbp.prototype.extend(Tbp.prototype, require('./core.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./engagement.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./social.js'));
-		Tbp.prototype.extend(Tbp.prototype, require('./analysis.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./auto_detect.js'));
+
+		// Add some more modules tucked out of the way
+		Tbp.prototype.analysis = require('./analysis.js');
 		
 		return Tbp;
 	})();

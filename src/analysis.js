@@ -39,7 +39,8 @@ module.exports = {
 	},
 	/**
 	 * A more simple approach to counting the words on a page.
-	 * 
+	 *
+	 * @param {array} discountedSelectors A list of selectors to discount
 	 * @return {number} The word count
 	 */
 	pageWordCount: function(discountedSelectors) {
@@ -56,5 +57,31 @@ module.exports = {
 			}
 		}
 		return bodyWordCount;
+	},
+	/**
+	 * Estimates reading time in minutes.
+	 *
+	 * @param {number} wpm The number
+	 * @param {mixed} w The number of words or a string
+	 * @return {number} The estimated time, in minutes, to read
+	 */
+	readTime: function(w, wpm) {
+		wpm = (typeof(wpm) !== 'number') ? 250:wpm;
+		wpm = wpm < 1 ? 1:wpm; // no divide by zero. no, don't disassemble number 5.
+		var readTime = 0;
+		var wc = 0;
+		if(w !== undefined) {
+			switch(typeof(w)) {
+				case 'string':
+					wc = w.split(/\s+/).length;
+				break;
+				case 'number':
+					wc = w;
+				break;
+			}
+			readTime = wc / wpm;
+		}
+		
+		return readTime;
 	}
 };

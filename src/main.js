@@ -73,8 +73,10 @@ window.$ki = require('./ki.ie8.js');
 		Tbp.prototype.extend(Tbp.prototype, require('./core.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./engagement.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./social.js'));
-		Tbp.prototype.extend(Tbp.prototype, require('./analysis.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./auto_detect.js'));
+
+		// Add some more modules tucked out of the way
+		Tbp.prototype.analysis = require('./analysis.js');
 		
 		return Tbp;
 	})();

@@ -34,17 +34,10 @@ module.exports = {
 		});
 
 		// Detect full page read.
-		var count = tbpContext.paragraphPageWordCount();
-		//console.dir(count);
-		
-		//console.dir(bodyInnerText);
-		//console.dir(bodyWordCount);
+		var count = tbpContext.analysis.paragraphPageWordCount();
+		tbpContext.read({
+			minTime: (tbpContext.analysis.readTime(count) * 60)
+		});
 
-		// now look again at all text div by div on the page. 
-		// discount anything with small amounts of text
-		
-
-
-		tbpContext.read();
 	}
 };
