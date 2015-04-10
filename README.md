@@ -31,7 +31,7 @@ Well, there's already a distribution waiting for you in the ```dist``` directory
 
 Then add the script to your site pages.
 
-```<script type="text/javascript" src="js/telepathic-black-panther.js"></script>```
+```<script type="text/javascript" src="telepathic-black-panther.js"></script>```
 
 Instantiate it after your Google Analytics embed code at the bottom of your pages.
 
