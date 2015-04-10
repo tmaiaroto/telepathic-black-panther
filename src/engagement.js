@@ -18,6 +18,9 @@ module.exports = {
 	 *         debug: 	 Logs information to the console
 	 *         xMin: 	 The minimum amount of the element to be visible in the viewport to count (if the selector is "body" then this can't be set and will be bottom of page)
 	 *         yMin: 	 The minimum amount of the element to be visible in the viewport to count (if the selector is "body" then this can't be set and will be bottom of page)
+	 *         
+	 * @param  {function} onSend Optional callback
+	 * @return {function}
 	*/
 	read: function(opts, onSend) {
 		opts = this.extend({
@@ -25,7 +28,7 @@ module.exports = {
 			"selector": "body",
 			"category": "page",
 			"action": "read",
-			"label": "engagements",
+			"label": "",
 			"xMin": 0,
 			"yMin": 1
 		}, opts);
@@ -91,6 +94,92 @@ module.exports = {
 
 	},
 	/**
+	 * Reports how much of the page came into the browser's viewport in a series of percentages.
+	 * 25%, 50%, 75%, and 100%
+	 *
+	 * Unlike the read() function, this one does not take time into account. It only cares how far 
+	 * down the page a user scrolled. It could be useful for building aggregate reports that could 
+	 * shed light on how much of a site is seen/used. It could also shed light on abandonment; perhaps 
+	 * a page has too much text on it and readers give up after a certain point.
+	 *
+	 * Note: This won't work for well for short pages. It will simply report 100% of the page came into 
+	 * view or perhaps 50% and then 100%.
+	 * 
+	 * @param  {object}   opts   
+	 *         minTime:  The amount of time, in seconds, that must pass before the event is considered valid (estimated time to read the content?).
+	 *         category: The Google Analytics category
+	 *         action:   The Google Analytics action
+	 *         
+	 * @param  {function} onSend Optional callback
+	 * @return {function}
+	*/
+	scrolledPage: function(opts, onSend) {
+		opts = this.extend({
+			"minTime": 2,
+			"category": "page",
+			"action": "scroll"
+		}, opts);
+		// If not set, take from Tbp opts.
+		if(!opts.hasOwnProperty('debug')) {
+			opts.debug = this.opts.debug;
+		}
+		onSend = (onSend === undefined) ? function(opts){}:onSend;
+
+		var tbpContext = this;
+		var sent = {
+			"25": false,
+			"50": false,
+			"75": false,
+			"100": false
+		};
+		var send = function(label) {
+			opts.label = label;
+			if(opts.debug) {
+				console.log("Tbp.scrolledPage() Logging page scroll event, label: " + label);
+			}
+			ga('send', {
+				'hitType': 'event',
+				'eventCategory': opts.category,
+				'eventAction': opts.action,
+				'eventLabel': opts.label,
+				'hitCallback': onSend(opts)
+			});
+		};
+
+		// Check for this every two seconds. In fact, check the current scroll position each time rather than at any point.
+		// This would negate situations where a user quickly scrolled down and back up again. While we aren't concerned with 
+		// an actual "read" per se, we also want to do the best we can to avoid inaccuracies.
+		// The "minTime" option also helps avoid tracking a user who comes to the page, scrolls real quick and leaves.
+		// Again, not a "read" and so that "minTime" is meant to be short, but not zero. Though it could be set to zero of course.
+		// One last reason here -- Google Analytics will throttle events if too many are sent too quickly.
+		setTimeout(function() {
+			var intervalId = setInterval(function() {
+				var percent = tbpContext.analysis.currentScrollPosition(true);
+				if(sent["25"] === false && percent >= 0.25) {
+					send("25%");
+					sent["25"] = true;
+				}
+				if(sent["50"] === false && percent >= 0.5) {
+					send("50%");
+					sent["50"] = true;
+				}
+				if(sent["75"] === false && percent >= 0.75) {
+					send("75%");
+					sent["75"] = true;
+				}
+				// Note: 98% will be considered close enough to 100% - there may even be times 100% isn't possible.
+				if(sent["100"] === false && percent >= 0.98) {
+					send("100%");
+					sent["100"] = true;
+					// We can also stop checking at this point. It is theoretically possible the user quickly scrolled to the bottom of the page
+					// and could still hit a lower scroll percentage, but it's better to stop checking to not get in the way of anything else
+					// that may be running on the page.
+					clearInterval(intervalId);
+				}
+			},(2*1000));
+		},(opts.minTime*1000));
+	},
+	/**
 	 * Tracks a click on a link/button that takes a user away from the page.
 	 * This ensures the hit is recorded before directing the user onward.
 	 * NOTE: Web crawlers will still rely on the "href" attribute being an actual URL.
@@ -108,8 +197,10 @@ module.exports = {
 	 *         action: 			The Google Analytics Event action
 	 *         label: 			The Google Analytics Event label (optional, this will be the URL by default)
 	 *         debug: 			Logs information to the console
-	 * @return redirect
-	 */
+	 *         
+	 * @param  {function} onSend Optional callback
+	 * @return {function}	 	If a callback was specified, otherwise it redirects the user
+	*/
 	linkOut: function(opts, onSend) {
 		opts = this.extend({
 			"url": "",

@@ -4,7 +4,7 @@ module.exports = function(grunt) {
 		pkg: grunt.file.readJSON('package.json'),
 		browserify: {
 			dist: {
-				src: ['src/**/*.js'],
+				src: ['src/**/*.js', 'node_modules/cookies-js/src/**/*.js'],
 				dest: 'dist/<%= pkg.name %>.js'
 			},
 			dev: {

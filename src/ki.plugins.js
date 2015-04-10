@@ -39,6 +39,13 @@ module.exports = {
 	hasClass: function(a) {
 		return this[0].classList.contains(a);
 	},
+	/**
+	 * Determines if an element falls within the browser's viewport.
+	 * 
+	 * @param  {number}  x How much of the element must be visible along the x axis as a percentage (0, 0.5, 1, etc.)
+	 * @param  {number}  y How much of the element must be visible along the y axis as a percentage (0, 0.5, 1, etc.)
+	 * @return {boolean}   Whether or not enough of the element is visible on the screen to count
+	*/
 	isOnScreen: function(x, y) {
 		if(x === null || typeof x === 'undefined') { x = 1; }
 	    if(y === null || typeof y === 'undefined') { y = 1; }

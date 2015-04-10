@@ -12,10 +12,10 @@ module.exports = {
 	 * Note: All of the word count functions are approximations, so the use case should  
 	 * be something that works well with such approximations.
 	 *
-	 * @param {number} minWords Minimum number of words required to count toward overall page word count
-	 * @param {number} minChars Minimum number of characters required to count a word as a word (exclude "a", "and", "or" etc.)
-	 * @return {number} The word count
-	 */
+	 * @param  {number} minWords Minimum number of words required to count toward overall page word count
+	 * @param  {number} minChars Minimum number of characters required to count a word as a word (exclude "a", "and", "or" etc.)
+	 * @return {number} 		 The word count
+	*/
 	paragraphPageWordCount: function(minWords, minChars) {
 		minWords = (typeof(minWords) !== 'number') ? 2:minWords;
 		minChars = (typeof(minChars) !== 'number') ? 3:minChars;
@@ -40,9 +40,9 @@ module.exports = {
 	/**
 	 * A more simple approach to counting the words on a page.
 	 *
-	 * @param {array} discountedSelectors A list of selectors to discount
-	 * @return {number} The word count
-	 */
+	 * @param  {array} discountedSelectors A list of selectors to discount
+	 * @return {number} 				   The word count
+	*/
 	pageWordCount: function(discountedSelectors) {
 		// discount obvious selectors (so we don't count text in the footer, nav, navbar, etc.)
 		discountedSelectors = (typeof(discountedSelectors) !== 'object') ? ['.footer', '.navbar', '.nav', '.header', '.ad', '.advertisement']:discountedSelectors;
@@ -61,10 +61,10 @@ module.exports = {
 	/**
 	 * Estimates reading time in minutes.
 	 *
-	 * @param {number} wpm The number
-	 * @param {mixed} w The number of words or a string
-	 * @return {number} The estimated time, in minutes, to read
-	 */
+	 * @param  {number} wpm The number
+	 * @param  {mixed}  w   The number of words or a string
+	 * @return {number}     The estimated time, in minutes, to read
+	*/
 	readTime: function(w, wpm) {
 		wpm = (typeof(wpm) !== 'number') ? 250:wpm;
 		wpm = wpm < 1 ? 1:wpm; // no divide by zero. no, don't disassemble number 5.
@@ -83,5 +83,29 @@ module.exports = {
 		}
 		
 		return readTime;
-	}
+	},
+	/**
+	 * Returns how far down the visitor has scrolled on the page in pixels or optionally as a percentage.
+	 *
+	 * @param  {boolean} percentage If true, a decmial percentage will be returned instead of a pixel value
+	 * @return {number} 		    Pixels or percentage
+	*/
+	currentScrollPosition: function(percentage) {
+		var top = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+		var scrollPosition = top + window.innerHeight;
+		if(percentage !== true) {
+			return scrollPosition;
+		}
+		return (scrollPosition / this.pageHeight()).toFixed(2);
+	},
+	/**
+	 * Gets the current page's height.
+	 *
+	 * @return {number} The page height in pixels
+	*/
+	pageHeight: function() {
+		var body = document.body;
+		var html = document.documentElement;
+		return Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );
+	} 
 };

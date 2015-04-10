@@ -17,6 +17,11 @@ window.$ki = require('./ki.ie8.js');
 			clientId: null,
 		};
 
+		/**
+		 * Telepathic Black Panther
+		 * 
+		 * @param {object} opts Some options used by Tbp in various places
+		*/
 		function Tbp(opts) {
 			// Tbp() or new Tbp() will work this way.
 			if (!(this instanceof Tbp)) return new Tbp(opts);
@@ -35,8 +40,11 @@ window.$ki = require('./ki.ie8.js');
 			// Extend defaults with options.
 			this.opts = this.extend(defaults, opts);
 
+			// Setup auto detection for everything. If an array was passed then only on those defined methods (names of functions).
 			if(this.opts.autoDetect === true) {
 				this.autoDetectEvents();
+			} else if (typeof(this.opts.autoDetect) === 'object') {
+				this.autoDetectEvents(autoDetect);
 			}
 
 			return this;
@@ -65,10 +73,6 @@ window.$ki = require('./ki.ie8.js');
 		Tbp.prototype.extend($ki.prototype, require('./ki.plugins.js'));
 		Tbp.prototype.$ = $ki;
 
-		// Reference it on Tbp.
-		//Tbp.prototype.$ = $ki;
-		// window.$ba = require('./balalaika.js');
-
 		// Merge from modules
 		Tbp.prototype.extend(Tbp.prototype, require('./core.js'));
 		Tbp.prototype.extend(Tbp.prototype, require('./engagement.js'));
@@ -77,6 +81,7 @@ window.$ki = require('./ki.ie8.js');
 
 		// Add some more modules tucked out of the way
 		Tbp.prototype.analysis = require('./analysis.js');
+		Tbp.prototype.cookies = require('../node_modules/cookies-js/src/cookies.js');
 		
 		return Tbp;
 	})();
