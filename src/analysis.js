@@ -99,6 +99,14 @@ module.exports = {
 		return (scrollPosition / this.pageHeight()).toFixed(2);
 	},
 	/**
+	 * Just returns the top of the current viewport.
+	 * 
+	 * @return {number} Pixels
+	*/
+	windowTop: function() {
+		return (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+	},
+	/**
 	 * Gets the current page's height.
 	 *
 	 * @return {number} The page height in pixels

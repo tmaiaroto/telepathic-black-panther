@@ -287,29 +287,23 @@ module.exports = {
 		var methods = (typeof(this.opts.autoDetect) === 'object') ? methods:'all';
 
 		// Detect outbound link clicks.
-		if(methods.indexOf('linkOut') >= 0 || methods === 'all') {
-			$ki('a').on('click', function(e) {
-				// TODO: Detect social share URLs and discount those when tracking outbound links. Those will get tracked under social.js as shares using a different GA method.
+		// if(methods.indexOf('linkOut') >= 0 || methods === 'all') {
+		// 	$ki('a').on('click', function(e) {
+		// 		// TODO: Detect social share URLs and discount those when tracking outbound links. Those will get tracked under social.js as shares using a different GA method.
 				
-				// If the link is not opening in another window or frame, etc. then stop propagation. 
-				// Otherwise, there might not be enough time to record the event.
-				if(this.target !== '_blank') {
-					e.preventDefault();
-					e.stopPropagation();
-				}
-
-				if((this.href).substr(0, 4).toLowerCase() == 'http') {
-					tbpContext.linkOut({
-						"url": this.href,
-						"trackDomainOnly": true,
-						// Return the URL, stopping the redirect in the linkOut() function if opening in a new window.
-						// Otherwise if the link is opening in a new window, there's no reason to redirect and the event will 
-						// be recorded because there's plenty of time on the page still.
-						"returnUrl": (this.target === '_blank')
-					});
-				}
-			});
-		}
+		// 		if((this.href).substr(0, 4).toLowerCase() == 'http') {
+		// 			url = tbpContext.linkOut({
+		// 				"url": this.href,
+		// 				"element": this,
+		// 				"trackDomainOnly": true,
+		// 				// Return the URL, stopping the redirect in the linkOut() function if opening in a new window.
+		// 				// Otherwise if the link is opening in a new window, there's no reason to redirect and the event will 
+		// 				// be recorded because there's plenty of time on the page still.
+		// 				"returnUrl": (this.target !== '_blank')
+		// 			});
+		// 		}
+		// 	});
+		// }
 
 		// Detect full page read.
 		if(methods.indexOf('read') >= 0 || methods === 'all') {
@@ -575,6 +569,7 @@ module.exports = {
 	linkOut: function(opts, onSend) {
 		opts = this.extend({
 			"url": "",
+			"element": false,
 			"returnUrl": false,
 			"trackDomainOnly": false,
 			"category": "outbound",
@@ -591,11 +586,24 @@ module.exports = {
 			return false;
 		}
 
+		if(opts.element !== false) {
+			// If the link is not opening in another window or frame, etc. then stop propagation. 
+			// Otherwise, there might not be enough time to record the event.
+			if(opts.element.target !== '_blank') {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+		}
+
 		// By default the label is going to be the link out.
 		var label = opts.url;
+		var tmp = document.createElement ('a');
+		tmp.href = opts.url;
+		// Check to ensure this is an outbound link
+		if(tmp.hostname.toLowerCase() === window.location.host.toLowerCase()) {
+			return opts.url;
+		}
 		if(opts.trackDomainOnly === true) {
-			var tmp = document.createElement ('a');
-			tmp.href = opts.url;
 			label = tmp.hostname;
 		}
 		// But that can be overridden by the call by passing a label value.
@@ -643,6 +651,14 @@ module.exports = {
 		if(opts.returnUrl === true) {
 			return opts.url;
 		}
+	},
+	/**
+	 * 
+	 * 
+	 * @return {[type]} [description]
+	 */
+	exitTo: function() {
+
 	}
 };
 },{}],6:[function(require,module,exports){

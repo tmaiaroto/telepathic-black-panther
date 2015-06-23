@@ -15,27 +15,21 @@ module.exports = {
 		return ((new Date()).getTime() - this.loadTime);
 	},
 	/**
-	 * Just a wrapper around Google Analytics ga() with some defaults and a check 
-	 * to ensure a label has been set (which is typically optional, but in our case required).
-	 * This shortens the amount of code written.
+	 * A wrapper around minibus that automatically adds the time the event occurred. 
+	 * This way, each funcion calling emit() doesn't need to pass it in the options.
+	 * Eeach emitted event also carries with it the visitor's first time seen for 
+	 * convenience.
 	 * 
-	 * So for example, to track a click on some welcome video on a page:
-	 * blackprintTrack.event({"label": "welcome video"})
+	 * The reason for this extra information is so that when users tap into the bus, 
+	 * they can take action on things and know when things happened.
+	 * Also, panther.do will use this data for conditions to take action.
 	 *
-	 * Or if that's to be tracked as a "watch" then:
-	 * blackprintTrack.event({"label": "welcome video", "action": "watch"})
-	 *
-	 * The default category here is "object" which tells the reporter that we're talking about 
-	 * some object on the page; an image, video, button, etc.
-	 * However, even the category can be changed.
-	 * 
-	 * @param  {Object} opts
+	 * @param {Object} event The event object
 	*/
-	event: function(opts) {
-		opts = this.extend(this.opts, opts);
-		if(opts.label !== "" && opts.label !== null) {
-			return this.ga('send', 'event', opts.category, opts.action, opts.label, opts.value);
-		}
-		return false;
+	emitEvent: function(event) {
+		console.log(this);
+		event._occurred = new Date();
+		event._firstVisit = new Date(parseInt(this.cookies.get("_tbp_fv")));
+		this.bus.emit('event', event);
 	}
 };
