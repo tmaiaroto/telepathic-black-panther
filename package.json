@@ -1,6 +1,6 @@
 {
   "name": "telepathic-black-panther",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Automatically tracks events in Google Analytics based on user behavior, site content, and UI.",
   "repository": {
     "type": "git",
