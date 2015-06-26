@@ -62,8 +62,8 @@ module.exports = {
 		},(2*1000));
 
 		var elem = $ki(opts.selector).first();
-		$ki(document).on('scroll', function(e) {
-			if(opts.selector == "body") {
+		$ki(document).on('scroll', function() {
+			if(opts.selector === "body") {
 				if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
 					$ki(document).off('scroll');
 					tbpContext.log("Tbp.read() The user has scrolled to the bottom of the page", "info");
@@ -122,7 +122,7 @@ module.exports = {
 
 		var percent = 0;
 		var hasScrolled = false;
-		var hasScrolledFn = function(e) {
+		var hasScrolledFn = function() {
 			hasScrolled = true;
 		};
 		window.addEventListener("scroll", hasScrolledFn);
@@ -318,7 +318,7 @@ module.exports = {
 		(function(history){
 		    var pushState = history.pushState;
 		    history.pushState = function(state) {
-		        if (typeof history.onpushstate == "function") {
+		        if (typeof history.onpushstate === "function") {
 		            history.onpushstate({state: state});
 		        }
 		        // ... whatever else you want to do
@@ -418,7 +418,7 @@ module.exports = {
 					// In the meantime, this will work just like ouibounce. Just set it when looking at the entire document.
 					// This default scenario is like ouibounce in that we are looking at when the visitor moves their cursor up toward the address bar
 					// or to a navigation button or perhaps even the menu or close button in their browser. Who knows...It's a guess really.
-					if(opts.element == document.documentElement) {
+					if(opts.element === document.documentElement) {
 						if(e.clientY > opts.proximity.top) {
 							return;
 						}
@@ -575,7 +575,7 @@ module.exports = {
 		var sent = {};
 		var timeSinceLastAcitivty = (new Date()).getTime();
 		var active = false;
-		var setActiveOnInput = function(e) {
+		var setActiveOnInput = function() {
 			active = true;
 			timeSinceLastAcitivty = (new Date()).getTime();
 		};
@@ -591,15 +591,17 @@ module.exports = {
 			if(!active) {
 				// Then check if enough time has passed for the periods defined in `opts.periods`
 				for(var i in opts.periods) {
-					var periodStr = opts.periods[i].toString();
-					if(!sent.hasOwnProperty(periodStr)) {
-						sent[periodStr] = false;
-					}
-					var now = (new Date()).getTime();
-					if(sent[periodStr] === false && ((now - timeSinceLastAcitivty) >= (opts.periods[i] * 1000))) {
-						opts.label = periodStr;
-						tbpContext.emitEvent(opts);
-						sent[periodStr] = true;
+					if(opts.periods.hasOwnProperty(i)) {
+						var periodStr = opts.periods[i].toString();
+						if(!sent.hasOwnProperty(periodStr)) {
+							sent[periodStr] = false;
+						}
+						var now = (new Date()).getTime();
+						if(sent[periodStr] === false && ((now - timeSinceLastAcitivty) >= (opts.periods[i] * 1000))) {
+							opts.label = periodStr;
+							tbpContext.emitEvent(opts);
+							sent[periodStr] = true;
+						}
 					}
 				}
 

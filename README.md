@@ -93,6 +93,8 @@ For example, you can present the user with different content or a modal that aut
 and they have scrolled down 50% on some page. There's a lot you can do with the events, but most importantly you can use them in your Google Analytics reporting 
 to help create segments and such.
 
+Telepathic Black Panther uses minibus (https://github.com/axelpale/minibus), so you may be interested in looking through it's API for additional functions.
+
 You can get the number of milliseconds since Telepathic Black Panther has loaded too (the current page session) by calling: 
 
 ```

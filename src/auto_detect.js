@@ -19,8 +19,8 @@ module.exports = {
 			$ki('a').on('click', function(e) {
 				// TODO: Detect social share URLs and discount those when tracking outbound links. Those will get tracked under social.js as shares using a different GA method.
 				
-				if((this.href).substr(0, 4).toLowerCase() == 'http') {
-					url = tbpContext.linkOut({
+				if((this.href).substr(0, 4).toLowerCase() === 'http') {
+					tbpContext.linkOut({
 						"url": this.href,
 						"element": this,
 						"elementEvent": e,
