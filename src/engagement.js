@@ -221,8 +221,10 @@ module.exports = {
 		tmp.href = opts.url;
 		// Check to ensure this is an outbound link
 		if(tmp.hostname.toLowerCase() === window.location.host.toLowerCase()) {
-			return opts.url;
+			window.location.href = opts.url;
+			return;
 		}
+
 		if(opts.trackDomainOnly === true) {
 			label = tmp.hostname;
 		}
@@ -244,9 +246,12 @@ module.exports = {
 					}, 5000);
 				} else {
 					window.location.href = opts.url;
+					return;
 				}
+			} else {
+				window.location.href = opts.url;
+				return;
 			}
-			return opts.url;
 		};
 
 		tbpContext.emitEvent(opts);

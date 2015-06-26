@@ -725,15 +725,16 @@ module.exports = {
 		if(methods.indexOf('linkOut') >= 0 || methods === 'all') {
 			$ki('a').on('click', function(e) {
 				// TODO: Detect social share URLs and discount those when tracking outbound links. Those will get tracked under social.js as shares using a different GA method.
-				
+
 				if((this.href).substr(0, 4).toLowerCase() === 'http') {
-					tbpContext.linkOut({
+					return tbpContext.linkOut({
 						"url": this.href,
 						"element": this,
 						"elementEvent": e,
 						"trackDomainOnly": true
 					});
 				}
+				return;
 			});
 		}
 
@@ -1068,8 +1069,10 @@ module.exports = {
 		tmp.href = opts.url;
 		// Check to ensure this is an outbound link
 		if(tmp.hostname.toLowerCase() === window.location.host.toLowerCase()) {
-			return opts.url;
+			window.location.href = opts.url;
+			return;
 		}
+
 		if(opts.trackDomainOnly === true) {
 			label = tmp.hostname;
 		}
@@ -1091,9 +1094,12 @@ module.exports = {
 					}, 5000);
 				} else {
 					window.location.href = opts.url;
+					return;
 				}
+			} else {
+				window.location.href = opts.url;
+				return;
 			}
-			return opts.url;
 		};
 
 		tbpContext.emitEvent(opts);
@@ -1734,7 +1740,7 @@ window.$ki = require('./ki.ie8.js');
 				}
 
 				// Push to Google Analytics
-				if(tbpContext.opts.ga && opts.label !== "" && opts.label !== null) {
+				if(tbpContext.opts.ga && tbpContext.opts.label !== "" && tbpContext.opts.label !== null) {
 					tbpContext.log("Sending event to Google Analytics", "info");
 					ga('send', {
 						'hitType': 'event',

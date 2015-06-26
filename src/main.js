@@ -79,7 +79,7 @@ window.$ki = require('./ki.ie8.js');
 				}
 
 				// Push to Google Analytics
-				if(tbpContext.opts.ga && opts.label !== "" && opts.label !== null) {
+				if(tbpContext.opts.ga && tbpContext.opts.label !== "" && tbpContext.opts.label !== null) {
 					tbpContext.log("Sending event to Google Analytics", "info");
 					ga('send', {
 						'hitType': 'event',
