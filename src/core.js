@@ -27,7 +27,6 @@ module.exports = {
 	 * @param {Object} event The event object
 	*/
 	emitEvent: function(event) {
-		console.log(this);
 		event._occurred = new Date();
 		event._firstVisit = new Date(parseInt(this.cookies.get("_tbp_fv")));
 		this.bus.emit('event', event);

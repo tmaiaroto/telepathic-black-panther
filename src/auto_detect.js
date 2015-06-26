@@ -53,9 +53,19 @@ module.exports = {
 			tbpContext.historyNavigate();
 		}
 
-
+		// Detect hashbang change, many long pages have section navgiation for example. Or, single page JavaScript apps will use these.
 		if(methods.indexOf('hashChange') >= 0 || methods === 'all') {
 			tbpContext.hashChange();
+		}
+
+		// Detect set periods of inactivity (1 min, 3 min, and 5 min by default). 
+		if(methods.indexOf('inactivity') >= 0 || methods === 'all') {
+			tbpContext.inactivity();
+		}
+		
+		// Detect form abandonment.
+		if(methods.indexOf('formAbandonment') >= 0 || methods === 'all') {
+			// tbpContext.formAbandonment();
 		}
 		
 

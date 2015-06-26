@@ -760,9 +760,19 @@ module.exports = {
 			tbpContext.historyNavigate();
 		}
 
-
+		// Detect hashbang change, many long pages have section navgiation for example. Or, single page JavaScript apps will use these.
 		if(methods.indexOf('hashChange') >= 0 || methods === 'all') {
 			tbpContext.hashChange();
+		}
+
+		// Detect set periods of inactivity (1 min, 3 min, and 5 min by default). 
+		if(methods.indexOf('inactivity') >= 0 || methods === 'all') {
+			tbpContext.inactivity();
+		}
+		
+		// Detect form abandonment.
+		if(methods.indexOf('formAbandonment') >= 0 || methods === 'all') {
+			// tbpContext.formAbandonment();
 		}
 		
 
@@ -798,7 +808,6 @@ module.exports = {
 	 * @param {Object} event The event object
 	*/
 	emitEvent: function(event) {
-		console.log(this);
 		event._occurred = new Date();
 		event._firstVisit = new Date(parseInt(this.cookies.get("_tbp_fv")));
 		this.bus.emit('event', event);
@@ -948,22 +957,22 @@ module.exports = {
 		}, opts);
 
 		var tbpContext = this;
-		var sent = {
-			"25": false,
-			"50": false,
-			"75": false,
-			"100": false
-		};
+		var sent = {};
 		var send = function(label) {
 			opts.label = label;
-			// tbpContext.log("Tbp.scrolledPage() Logging page scroll event, label: " + label);
-			tbpContext.emitEvent(opts);
+			if(sent[label] === undefined) {
+				sent[label] = true;
+				// tbpContext.log("Tbp.scrolledPage() Logging page scroll event, label: " + label);
+				tbpContext.emitEvent(opts);			
+			}
 		};
 
+		var percent = 0;
 		var hasScrolled = false;
-		window.onscroll = function (e) {
+		var hasScrolledFn = function(e) {
 			hasScrolled = true;
 		};
+		window.addEventListener("scroll", hasScrolledFn);
 
 		// TODO: Think about checking if the window position started at the top of the page...
 		// The idea was to prevent events from being logged about 25% scroll when the user started at the bottom of the page (a refresh for example or perhaps anhor link)
@@ -985,27 +994,24 @@ module.exports = {
 				// otherwise be automatically recorded when the user didn't actaully scroll. This may be desireable though, so the options
 				// can bypass this check with `opts.initialScrollRequired` set to false.
 				if(hasScrolled || !opts.initialScrollRequired) {
-					var percent = tbpContext.analysis.currentScrollPosition(true);
-					if(sent["25"] === false && percent >= 0.25) {
+					percent = tbpContext.analysis.currentScrollPosition(true);
+					if(percent >= 0.25) {
 						send("25%");
-						sent["25"] = true;
 					}
-					if(sent["50"] === false && percent >= 0.5) {
+					if(percent >= 0.5) {
 						send("50%");
-						sent["50"] = true;
 					}
-					if(sent["75"] === false && percent >= 0.75) {
+					if(percent >= 0.75) {
 						send("75%");
-						sent["75"] = true;
 					}
 					// Note: 98% will be considered close enough to 100% - there may even be times 100% isn't possible.
-					if(sent["100"] === false && percent >= 0.98) {
+					if(percent >= 0.98) {
 						send("100%");
-						sent["100"] = true;
 						// We can also stop checking at this point. It is theoretically possible the user quickly scrolled to the bottom of the page
 						// and could still hit a lower scroll percentage, but it's better to stop checking to not get in the way of anything else
 						// that may be running on the page.
 						clearInterval(intervalId);
+						window.removeEventListener("scroll", hasScrolledFn);
 					}
 				}
 			},(2*1000));
@@ -1292,10 +1298,62 @@ module.exports = {
 	 * it or had a difficult time completing it.
 	 *
 	 * Probably extremely handy on a checkout page.
+	 *
+	 * Maybe also have another function for time to fill out form.
+	 * Or, similar to inactivity, a "hesitation" timer. Once a visitor clicks on a form, how long does it take them to complete it?
+	 * Or once the mouse enters a button or certain section of a page, how long does it take for the visitor to click the CTA?
+	 * For that matter, many of these events might be useful: http://www.clicktale.com/products/mouse-tracking-suite/link-analytics
+	 * The problem in GA is matching the links to the data then telling/visually showing a reporter which link it was.
+	 *
+	 * Same issue exists for forms too...How many forms are on the page? How are they referenced/named?
+	 * We can simply say, "A form on this page was abandoned" but what if there are multiple?
+	 * So this may not be such an auotmatic thing...unless each form has an id of course.
+	 * 
 	 * 
 	 * @param {Object} opts
 	*/
 	formAbandonment: function(opts) {
+		opts = this.extend({
+			"_method": "formAbandonment",
+			"category": "behavior",
+			"action": "formAbandonment",
+			"label": "",
+			"element": null
+		}, opts);
+
+		var tbpContext = this;
+
+		// We need a form element to be passed.
+		if(!opts.element) {
+			return;
+		}
+
+
+
+	},
+	/**
+	 * Emits events for the period of time it took to complete a form.
+	 *
+	 * This can shed light on forms that may confuse visitors or otherwise create friction.
+	 * Forms that take a long time to complete may need to be broken up or made easier for better UX.
+	 *
+	 * @param {Object} opts
+	*/
+	formCompletionTime: function(opts) {
+		opts = this.extend({
+			"_method": "formCompletionTime",
+			"category": "behavior",
+			"action": "formCompletionTime",
+			"label": "",
+			"element": null
+		}, opts);
+
+		var tbpContext = this;
+
+		// We need a form element to be passed.
+		if(!opts.element) {
+			return;
+		}
 
 	},
 	/**
@@ -1347,7 +1405,73 @@ module.exports = {
 	 * @param {Object} opts
 	*/
 	inactivity: function(opts) {
+		opts = this.extend({
+			"_method": "inactivity",
+			"category": "behavior",
+			"action": "inactive",
+			"label": "",
+			"periods": [60, 180, 300],
+			// "timeToDisengage": 60, // can take lowest period for this. an event will be emitted that takes time since load to the period. 
+			// that is how long it took a visitor to become inactive...so analytics reports can segment this. users are inactive after 3 minutes let's say.
+			// and then we can ignore the fact that time on page was 10 minutes. because google's time on page is inaccurate in that case.
+			"checkInterval": 2
+		}, opts);
 
+		var tbpContext = this;
+
+		var sent = {};
+		var timeSinceLastAcitivty = (new Date()).getTime();
+		var active = false;
+		var setActiveOnInput = function(e) {
+			active = true;
+			timeSinceLastAcitivty = (new Date()).getTime();
+		};
+		// All the events that tell us a visitor is actively engaging with the page.
+		window.addEventListener("scroll", setActiveOnInput);
+		window.addEventListener("mousemove", setActiveOnInput);
+		window.addEventListener("keypress", setActiveOnInput);
+		window.addEventListener("click", setActiveOnInput);
+
+		// Checks for inactivity on the `opts.checkInterval` which can be tuned for performance.
+		var inactivityCheck = setInterval(function() {
+			// Check to see if active is false, if so - there has been no activity.
+			if(!active) {
+				// Then check if enough time has passed for the periods defined in `opts.periods`
+				for(var i in opts.periods) {
+					var periodStr = opts.periods[i].toString();
+					if(!sent.hasOwnProperty(periodStr)) {
+						sent[periodStr] = false;
+					}
+					var now = (new Date()).getTime();
+					if(sent[periodStr] === false && ((now - timeSinceLastAcitivty) >= (opts.periods[i] * 1000))) {
+						opts.label = periodStr;
+						tbpContext.emitEvent(opts);
+						sent[periodStr] = true;
+					}
+				}
+
+				// watch all periods and once all have been reached. stop inactivityCheck and remove event listeners.
+				var stopWatching = true;
+				for(var j in sent) {
+					if(sent[j] === false) {
+						stopWatching = false;
+					}
+				}
+				if(stopWatching) {
+					// Keep it clean. Having all of these listeneers and the inactivity interval can affect performance.
+					tbpContext.log("Stop watching for activity, events for all periods have been sent.", "info");
+					clearInterval(inactivityCheck);
+					window.removeEventListener("scroll", setActiveOnInput);
+					window.removeEventListener("mousemove", setActiveOnInput);
+					window.removeEventListener("keypress", setActiveOnInput);
+					window.removeEventListener("click", setActiveOnInput);
+				}
+				
+			}
+
+			// Set active to false. It will get set back to true if there is activity before the next pass.
+			active = false;
+		}, opts.checkInterval*1000);
 	}
 };
 },{}],8:[function(require,module,exports){
@@ -1538,7 +1662,10 @@ window.$ki = require('./ki.ie8.js');
 			debug: false,
 			autoDetect: true,
 			// The default use case is to send events to Google Analytics, but that can be disabled...
-			sendToGA: true,
+			ga: true,
+			// We also, by default, push events to the dataLayer (commonly used by GTM and many other things) 
+			// pass an array in here, `dataLayer` || [] used by default if this is true
+			dataLayer: true,
 			// For events
 			category: "object",
 			action: "click",
@@ -1586,17 +1713,26 @@ window.$ki = require('./ki.ie8.js');
 			// Setup the panther bus
 			this.bus = this.minibus.create();
 
-			// Automatically submit to Google Analytics (unless configured otherwise) and log the event to console if debug was set true.
-			// Anything else a user can handle via the bus.
+			// There's going to be a few closures coming up here...
 			var tbpContext = this;
+
+			// Automatically submit to Google Analytics (unless configured otherwise) and log the event to console if debug was set true.
+			// Also push on to the dataLayer if told to do so and emit an event for that through the bus too.
+			// Anything else a user can handle via the bus.
 			this.bus.on('event', function(event) {
-				//tbpContext.log("Event emitted", "info");
-				//tbpContext.log(event);
 				tbpContext.log("Emitted Event", event);
-				if(tbpContext.opts.debug) {
-					//console.log("Event emitted", event);
+
+				// Push to the dataLayer
+				if(typeof(tbpContext.opts.dataLayer) === "object") {
+					tbpContext.opts.dataLayer.push(event);
+				} else if(tbpContext.opts.dataLayer === true) {
+					if(typeof(dataLayer) === "object") {
+						dataLayer.push(event);
+					}
 				}
-				if(tbpContext.opts.sendToGA && opts.label !== "" && opts.label !== null) {
+
+				// Push to Google Analytics
+				if(tbpContext.opts.ga && opts.label !== "" && opts.label !== null) {
 					tbpContext.log("Sending event to Google Analytics", "info");
 					ga('send', {
 						'hitType': 'event',
@@ -1613,8 +1749,45 @@ window.$ki = require('./ki.ie8.js');
 						event.hitCallback(event);
 					}
 				}
-
 			});
+
+			// Here's how one could watch the dataLayer for anything Telepathic Black Panther pushes to it.
+			// this.bus.on('dataLayer', function(event, theDataLayer) {
+			// 	console.dir(event);
+			// 	console.dir(theDataLayer);
+			// });
+
+			// Override push() on the dataLayer to catch changes to it.
+			if(this.opts.dataLayer) {
+				var handleDataLayerPush = function () {
+					for (var i = 0, n = this.length, l = arguments.length; i < l; i++, n++) {
+						tbpContext.bus.emit('dataLayer', this[n] = arguments[i], this);
+						//RaiseMyEvent(this, n, this[n] = arguments[i]); // assign/raise your event
+					}
+					return n;
+				};
+
+				// Hopefully `dataLayer` will be an array already defined. However, some people may want to name it something different 
+				// and that's ok too because `this.opts.dataLayer` can be passed an array to use instead. If `dataLayer` doesn't exist yet, 
+				// just make a new empty array to use.
+				if(typeof(this.opts.dataLayer) === "object") {
+					Object.defineProperty(this.opts.dataLayer, "push", {
+						configurable: false,
+						enumerable: false, // hide from for...in
+						writable: false,
+						value: handleDataLayerPush
+					});
+				} else if(this.opts.dataLayer === true) {
+					if(typeof(dataLayer) === "object") {
+						Object.defineProperty(dataLayer, "push", {
+							configurable: false,
+							enumerable: false, // hide from for...in
+							writable: false,
+							value: handleDataLayerPush
+						});
+					}
+				}
+			}
 
 		}
 

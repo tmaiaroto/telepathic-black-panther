@@ -9,7 +9,10 @@ window.$ki = require('./ki.ie8.js');
 			debug: false,
 			autoDetect: true,
 			// The default use case is to send events to Google Analytics, but that can be disabled...
-			sendToGA: true,
+			ga: true,
+			// We also, by default, push events to the dataLayer (commonly used by GTM and many other things) 
+			// pass an array in here, `dataLayer` || [] used by default if this is true
+			dataLayer: true,
 			// For events
 			category: "object",
 			action: "click",
@@ -57,17 +60,26 @@ window.$ki = require('./ki.ie8.js');
 			// Setup the panther bus
 			this.bus = this.minibus.create();
 
-			// Automatically submit to Google Analytics (unless configured otherwise) and log the event to console if debug was set true.
-			// Anything else a user can handle via the bus.
+			// There's going to be a few closures coming up here...
 			var tbpContext = this;
+
+			// Automatically submit to Google Analytics (unless configured otherwise) and log the event to console if debug was set true.
+			// Also push on to the dataLayer if told to do so and emit an event for that through the bus too.
+			// Anything else a user can handle via the bus.
 			this.bus.on('event', function(event) {
-				//tbpContext.log("Event emitted", "info");
-				//tbpContext.log(event);
 				tbpContext.log("Emitted Event", event);
-				if(tbpContext.opts.debug) {
-					//console.log("Event emitted", event);
+
+				// Push to the dataLayer
+				if(typeof(tbpContext.opts.dataLayer) === "object") {
+					tbpContext.opts.dataLayer.push(event);
+				} else if(tbpContext.opts.dataLayer === true) {
+					if(typeof(dataLayer) === "object") {
+						dataLayer.push(event);
+					}
 				}
-				if(tbpContext.opts.sendToGA && opts.label !== "" && opts.label !== null) {
+
+				// Push to Google Analytics
+				if(tbpContext.opts.ga && opts.label !== "" && opts.label !== null) {
 					tbpContext.log("Sending event to Google Analytics", "info");
 					ga('send', {
 						'hitType': 'event',
@@ -84,8 +96,45 @@ window.$ki = require('./ki.ie8.js');
 						event.hitCallback(event);
 					}
 				}
-
 			});
+
+			// Here's how one could watch the dataLayer for anything Telepathic Black Panther pushes to it.
+			// this.bus.on('dataLayer', function(event, theDataLayer) {
+			// 	console.dir(event);
+			// 	console.dir(theDataLayer);
+			// });
+
+			// Override push() on the dataLayer to catch changes to it.
+			if(this.opts.dataLayer) {
+				var handleDataLayerPush = function () {
+					for (var i = 0, n = this.length, l = arguments.length; i < l; i++, n++) {
+						tbpContext.bus.emit('dataLayer', this[n] = arguments[i], this);
+						//RaiseMyEvent(this, n, this[n] = arguments[i]); // assign/raise your event
+					}
+					return n;
+				};
+
+				// Hopefully `dataLayer` will be an array already defined. However, some people may want to name it something different 
+				// and that's ok too because `this.opts.dataLayer` can be passed an array to use instead. If `dataLayer` doesn't exist yet, 
+				// just make a new empty array to use.
+				if(typeof(this.opts.dataLayer) === "object") {
+					Object.defineProperty(this.opts.dataLayer, "push", {
+						configurable: false,
+						enumerable: false, // hide from for...in
+						writable: false,
+						value: handleDataLayerPush
+					});
+				} else if(this.opts.dataLayer === true) {
+					if(typeof(dataLayer) === "object") {
+						Object.defineProperty(dataLayer, "push", {
+							configurable: false,
+							enumerable: false, // hide from for...in
+							writable: false,
+							value: handleDataLayerPush
+						});
+					}
+				}
+			}
 
 		}
 
