@@ -814,18 +814,6 @@ module.exports = {
 		event._firstVisit = new Date(parseInt(this.cookies.get("_tbp_fv")));
 		this.bus.emit('event', event);
 	},
-	cloneEventObj: function(eventObj, overrideObj) {
-		if(!overrideObj){
-			overrideObj = {};
-		}
-		var EventCloneFactory = function(overProps) {
-			for(var x in overProps){
-				this[x] = overProps[x];
-			}
-		};
-		EventCloneFactory.prototype = eventObj;
-		return new EventCloneFactory(overrideObj);
-	},
 	/**
 	 * 
 	 * @param target can be any DOM Element or other EventTarget
