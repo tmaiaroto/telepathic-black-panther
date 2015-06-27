@@ -171,17 +171,25 @@ module.exports = {
 		},(opts.minTime*1000));
 	},
 	/**
-	 * Tracks a click on a link/button that takes a user away from the page.
+	 * Tracks a click on a link that takes a user away from the page.
 	 * This ensures the hit is recorded before directing the user onward.
-	 * NOTE: Web crawlers will still rely on the "href" attribute being an actual URL.
-	 * If this function is used without that attribute, then web crawlers may not properly index 
-	 * those linked pages (which may not matter if they are not on the same domain anyway).
-	 * So use the "onClick" attribute to call this function instead or register an event listener.
+	 * 
+	 * Note: The elementEvent is a required option. Passing the element is preferred, but it 
+	 * should be available through the event. These are both very easily retrieved with $ki or jQuery, etc.
 	 *
-	 * Kept under engagement.js, though this is kind of a disengagement, right?
+	 * They are needed because propagation needs to be stopped and a new simulated click event needs
+	 * to be triggered on the original element. This new click event will carry with it a new custom
+	 * property that is checked for by this function in order to prevent a loop.
+	 *
+	 * It's not a real challenge for links opening in a new window, but for those that open in the 
+	 * same window, we need to ensure our event is emitted and passed off to Google Analytics before
+	 * the browser is allowed to direct the visitor away from the page.
+	 *
+	 * Example usage can be found in auto_detect.js.
 	 * 
 	 * @param  {Object} opts
-	 *         url: 			The URL to redirect to once done tracking
+	 *         element: 		The (likely anchor) element with the link out
+	 *         elementEvent:    The event (likely MouseEvent on click) so that it can be cancelled while the event gets emitted
 	 *         trackDomainOnly: Just send the domain name to Google Analytics as the label instead of the full URL
 	 *         category: 		The Google Analytics Event category
 	 *         action: 			The Google Analytics Event action
@@ -193,7 +201,6 @@ module.exports = {
 	linkOut: function(opts) {
 		opts = this.extend({
 			"_method": "linkOut",
-			"url": "",
 			"element": false,
 			"elementEvent": false,
 			"trackDomainOnly": false,
@@ -202,28 +209,44 @@ module.exports = {
 			"label": ""
 		}, opts);
 
-		if(opts.url === "") {
-			return false;
+		if(opts.elementEvent === undefined) {
+			return;
+		}
+		// If an element was not passed, the event should have a target we can use...
+		if(!opts.element) {
+			opts.element = opts.elementEvent.target;
+		}
+		// Still no element? Really?
+		if(!opts.element) {
+			return;
+		}
+		var tbpContext = this;
+
+		// When we set events, we add an extra property that prevents a loop...Because for links, we typically watch the click event and also dispatch a new one.
+		if(opts.elementEvent.hasOwnProperty('preventLoop')) {
+			return;
+		}
+
+		// Manually dispatch a (new, since we can't use the old one) click event on the element.
+		var continueLinkOut = function() {
+			tbpContext.addEvent(opts.element, 'click', function(){return;});
+			tbpContext.triggerEvent(opts.element, 'click');
+			return;
+		};
+
+		// By default the label is going to be the link out.
+		var label = opts.element.href;
+		var tmp = document.createElement('a');
+		tmp.href = opts.element.href;
+		// Check to ensure this is an outbound link
+		if(tmp.hostname.toLowerCase() === window.location.host.toLowerCase()) {
+			return;
 		}
 
 		// preventDefault() if the link target is not _blank because we need to ensure the event is sent to GA and handled 
 		// by anything else before the page disappears.
-		if(opts.element && opts.elementEvent) {
-			if(opts.element.target !== '_blank') {
-				opts.elementEvent.preventDefault();
-				opts.elementEvent.stopPropagation();
-			}
-		}
-
-		// By default the label is going to be the link out.
-		var label = opts.url;
-		var tmp = document.createElement ('a');
-		tmp.href = opts.url;
-		// Check to ensure this is an outbound link
-		if(tmp.hostname.toLowerCase() === window.location.host.toLowerCase()) {
-			window.location.href = opts.url;
-			return;
-		}
+		opts.elementEvent.preventDefault();
+		opts.elementEvent.stopPropagation();
 
 		if(opts.trackDomainOnly === true) {
 			label = tmp.hostname;
@@ -235,31 +258,26 @@ module.exports = {
 		// Set label (whatever it is at this point) to opts so it can be passed to the panther bus as part of a single object.
 		opts.label = label;
 
-		var tbpContext = this;
 		opts.hitCallback = opts.hitCallback || function() {
 			// Redirect if target is not _blank, on this callback (after the event has been emitted).
 			if(opts.element && opts.element.target !== '_blank') {
-				// tbpContext.log("Tbp.linkOut() The user will now be redirected to " + opts.url);
+				// tbpContext.log("Tbp.linkOut() The user will now be redirected to " + opts.element.href);
 				if(tbpContext.opts.debug) {
 					return setTimeout(function(){
-						window.location.href = opts.url;
+						continueLinkOut();
+						return;
 					}, 5000);
 				} else {
-					window.location.href = opts.url;
+					continueLinkOut();
 					return;
 				}
 			} else {
-				window.location.href = opts.url;
+				continueLinkOut();
 				return;
 			}
 		};
 
 		tbpContext.emitEvent(opts);
-
-		// Just in case
-		if(opts.returnUrl === true) {
-			return opts.url;
-		}
 	},
 	/**
 	 * Detects a chance in the URL hash. This is common for single-page JavaScript apps with 

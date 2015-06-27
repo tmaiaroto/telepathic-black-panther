@@ -20,14 +20,15 @@ module.exports = {
 				// TODO: Detect social share URLs and discount those when tracking outbound links. Those will get tracked under social.js as shares using a different GA method.
 
 				if((this.href).substr(0, 4).toLowerCase() === 'http') {
-					return tbpContext.linkOut({
+					tbpContext.linkOut({
 						"url": this.href,
 						"element": this,
 						"elementEvent": e,
 						"trackDomainOnly": true
 					});
+				} else {
+					return;
 				}
-				return;
 			});
 		}
 

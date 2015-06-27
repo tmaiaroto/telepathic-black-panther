@@ -30,5 +30,31 @@ module.exports = {
 		event._occurred = new Date();
 		event._firstVisit = new Date(parseInt(this.cookies.get("_tbp_fv")));
 		this.bus.emit('event', event);
+	},
+	/**
+	 * 
+	 * @param target can be any DOM Element or other EventTarget
+	 * @param type Event type (i.e. 'click')
+	 * @param doc Placeholder for document
+	 * @param event Placeholder for creating an Event
+	*/
+	triggerEvent: function(target, type, doc, event) {
+		doc = document;
+		if(doc.createEvent) {
+			event = new Event(type);
+			event.preventLoop = true;
+			target.dispatchEvent(event);
+		} else {
+			event = doc.createEventObject();
+			event.preventLoop = true;
+			target.fireEvent('on' + type, event);
+		}
+	},
+	addEvent: function(element,type,callback){
+		try {
+			element.addEventListener(type,callback,!1);
+		} catch(d) {
+			element.attachEvent('on'+type,callback);
+		}
 	}
 };
