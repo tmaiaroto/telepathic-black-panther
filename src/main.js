@@ -53,14 +53,14 @@
 			this.cookies = require('../node_modules/cookies-js/src/cookies.js');
 
 			// Shortcut $ki.
-			this.extend($ki.prototype, require('./ki.plugins.js'));
-			this.$ = $ki;
+			this.extend(window.$ki.prototype, require('./ki.plugins.js'));
+			this.$ = window.$ki;
 
 			// Setup auto detection for everything. If an array was passed then only on those defined methods (names of functions).
 			if(this.config.autoDetect === true) {
 				this.autoDetectEvents();
 			} else if (typeof(this.config.autoDetect) === 'object') {
-				this.autoDetectEvents(autoDetect);
+				this.autoDetectEvents(this.config.autoDetect);
 			}
 
 			// Cookie the user. Set the first time Telepathic Black Panther spotted them (trying to keep cookie names short, fv = first visit).
@@ -81,8 +81,8 @@
 				if(typeof(tbpContext.config.dataLayer) === "object") {
 					tbpContext.config.dataLayer.push(event);
 				} else if(tbpContext.config.dataLayer === true) {
-					if(typeof(dataLayer) === "object") {
-						dataLayer.push(event);
+					if(typeof(window.dataLayer) === "object") {
+						window.dataLayer.push(event);
 					}
 				}
 
@@ -134,8 +134,8 @@
 						value: handleDataLayerPush
 					});
 				} else if(this.config.dataLayer === true) {
-					if(typeof(dataLayer) === "object") {
-						Object.defineProperty(dataLayer, "push", {
+					if(typeof(window.dataLayer) === "object") {
+						Object.defineProperty(window.dataLayer, "push", {
 							configurable: false,
 							enumerable: false, // hide from for...in
 							writable: false,

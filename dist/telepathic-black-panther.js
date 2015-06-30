@@ -717,13 +717,13 @@ module.exports = {
 module.exports = {
 	autoDetectEvents: function() {
 		var tbpContext = this;
-		var methods = (typeof(this.config.autoDetect) === 'object') ? methods:'all';
+		var methods = (typeof(this.config.autoDetect) === 'object') ? this.config.autoDetect:'all';
 
 		tbpContext.log("Tbp.autoDetectEvents() Analyzing the page to watch for the following methods:", methods);
 
 		// Detect outbound link clicks.
 		if(methods.indexOf('linkOut') >= 0 || methods === 'all') {
-			$ki('a').on('click', function(e) {
+			tbpContext.$('a').on('click', function(e) {
 				// TODO: Detect social share URLs and discount those when tracking outbound links. Those will get tracked under social.js as shares using a different GA method.
 
 				if((this.href).substr(0, 4).toLowerCase() === 'http') {
@@ -774,7 +774,7 @@ module.exports = {
 		
 		// Detect time to engage the form(s) on the page.
 		if(methods.indexOf('timeToEngage') >= 0 || methods === 'all') {
-			$ki('form').each(function(el) {
+			tbpContext.$('form').each(function(el) {
 				tbpContext.timeToEngage({element: el});
 			});
 		}
@@ -783,7 +783,6 @@ module.exports = {
 		if(methods.indexOf('formAbandonment') >= 0 || methods === 'all') {
 			// tbpContext.formAbandonment();
 		}
-
 	}
 };
 },{}],5:[function(require,module,exports){
@@ -1913,8 +1912,8 @@ module.exports = {
 			this.cookies = require('../node_modules/cookies-js/src/cookies.js');
 
 			// Shortcut $ki.
-			this.extend($ki.prototype, require('./ki.plugins.js'));
-			this.$ = $ki;
+			this.extend(window.$ki.prototype, require('./ki.plugins.js'));
+			this.$ = window.$ki;
 
 			// Setup auto detection for everything. If an array was passed then only on those defined methods (names of functions).
 			if(this.config.autoDetect === true) {
@@ -1941,8 +1940,8 @@ module.exports = {
 				if(typeof(tbpContext.config.dataLayer) === "object") {
 					tbpContext.config.dataLayer.push(event);
 				} else if(tbpContext.config.dataLayer === true) {
-					if(typeof(dataLayer) === "object") {
-						dataLayer.push(event);
+					if(typeof(window.dataLayer) === "object") {
+						window.dataLayer.push(event);
 					}
 				}
 
@@ -1994,8 +1993,8 @@ module.exports = {
 						value: handleDataLayerPush
 					});
 				} else if(this.config.dataLayer === true) {
-					if(typeof(dataLayer) === "object") {
-						Object.defineProperty(dataLayer, "push", {
+					if(typeof(window.dataLayer) === "object") {
+						Object.defineProperty(window.dataLayer, "push", {
 							configurable: false,
 							enumerable: false, // hide from for...in
 							writable: false,

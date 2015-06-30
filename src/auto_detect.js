@@ -10,13 +10,13 @@
 module.exports = {
 	autoDetectEvents: function() {
 		var tbpContext = this;
-		var methods = (typeof(this.config.autoDetect) === 'object') ? methods:'all';
+		var methods = (typeof(this.config.autoDetect) === 'object') ? this.config.autoDetect:'all';
 
 		tbpContext.log("Tbp.autoDetectEvents() Analyzing the page to watch for the following methods:", methods);
 
 		// Detect outbound link clicks.
 		if(methods.indexOf('linkOut') >= 0 || methods === 'all') {
-			$ki('a').on('click', function(e) {
+			tbpContext.$('a').on('click', function(e) {
 				// TODO: Detect social share URLs and discount those when tracking outbound links. Those will get tracked under social.js as shares using a different GA method.
 
 				if((this.href).substr(0, 4).toLowerCase() === 'http') {
@@ -67,7 +67,7 @@ module.exports = {
 		
 		// Detect time to engage the form(s) on the page.
 		if(methods.indexOf('timeToEngage') >= 0 || methods === 'all') {
-			$ki('form').each(function(el) {
+			tbpContext.$('form').each(function(el) {
 				tbpContext.timeToEngage({element: el});
 			});
 		}
@@ -76,6 +76,5 @@ module.exports = {
 		if(methods.indexOf('formAbandonment') >= 0 || methods === 'all') {
 			// tbpContext.formAbandonment();
 		}
-
 	}
 };
