@@ -851,8 +851,8 @@ module.exports = {
 						tgtStr += "#" + element.id;
 					} else {
 						// Try the classList. Of course it's very possible for many elements to use the same class(es).
-						if(element.classList && element.classList.length > 0) {
-							tgtStr += "." + element.classList.toString();
+						if(element.className) {
+							tgtStr += "." + element.className;
 						} else {
 							// No classes? Position on page? -- this could vary greatly and is up to the client device...so no.
 							// var offset = $ki(element).offset();
