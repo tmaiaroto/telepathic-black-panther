@@ -1919,7 +1919,7 @@ module.exports = {
 			if(this.config.autoDetect === true) {
 				this.autoDetectEvents();
 			} else if (typeof(this.config.autoDetect) === 'object') {
-				this.autoDetectEvents(autoDetect);
+				this.autoDetectEvents(this.config.autoDetect);
 			}
 
 			// Cookie the user. Set the first time Telepathic Black Panther spotted them (trying to keep cookie names short, fv = first visit).
