@@ -1,7 +1,7 @@
 /**
- * The engagement.js module includes functions that track events related to engagement.
- * How are visitors engaging with a page? Are they reading the content? Commenting?
- * Filling out forms? Or are they getting stuck on forms? Do they abandom them?
+ * The engagement.js module includes functions that track events related to a visitor's behavior
+ * and level of engagement. How are visitors engaging with a page? Are they reading the content? 
+ * Commenting? Filling out forms? Or are they getting stuck on forms? Do they abandom them?
  * These kind of questions are answered by the events this module sends to GA.
  * 
 */
@@ -29,8 +29,8 @@ module.exports = {
 			"xMin": 0,
 			"yMin": 1,
 			// for GA events specifically
-			"category": "page",
-			"action": "read",
+			"category": "behavior",
+			"action": "read:page",
 			"label": ""
 		}, opts);
 
@@ -105,8 +105,8 @@ module.exports = {
 			"_method": "scrolledPage",
 			"minTime": 2,
 			"initialScrollRequired": true,
-			"category": "page",
-			"action": "scroll"
+			"category": "behavior",
+			"action": "scroll:page"
 		}, opts);
 
 		var tbpContext = this;
@@ -204,8 +204,8 @@ module.exports = {
 			"element": false,
 			"elementEvent": false,
 			"trackDomainOnly": false,
-			"category": "outbound",
-			"action": "navigate",
+			"category": "navigation",
+			"action": "outbound",
 			"label": ""
 		}, opts);
 
@@ -294,8 +294,8 @@ module.exports = {
 	hashChange: function(opts) {
 		opts = this.extend({
 			"_method": "hashChange",
-			"category": "page",
-			"action": "navigate",
+			"category": "navigation",
+			"action": "hashbang",
 			"label": ""
 		}, opts);
 		var tbpContext = this;
@@ -326,8 +326,8 @@ module.exports = {
 	historyNavigate: function(opts) {
 		opts = this.extend({
 			"_method": "historyNavigate",
-			"category": "history",
-			"action": "navigate",
+			"category": "navigation",
+			"action": "history",
 			"label": ""
 		}, opts);
 		var tbpContext = this;
@@ -404,8 +404,9 @@ module.exports = {
 		opts = this.extend({
 			"_method": "leave",
 			"category": "behavior",
-			"action": "mouseleave",
-			"label": "page",
+			"action": "",
+			"label": "",
+			"nonInteraction": true,
 			"trackOnce": true,
 			"perPage": true,
 			"delay": 1000,
@@ -415,6 +416,11 @@ module.exports = {
 			"element": document.documentElement
 		}, opts);
 
+		// Ensure an element was passed.
+		if(opts.element === "") {
+			return;
+		}
+
 		var tbpContext = this;
 
 		// The best we can do, probably not a good idea to pass an element without an id. Unless it's unique HTML code (which <html> and <body> will be of course).
@@ -422,6 +428,16 @@ module.exports = {
 		var leaveKey = '_tbp_' + this.hashCode("leave_" + elemId, true);
 		var path = opts.perPage ? window.location.pathname:"/";
 		var _delayTimer = null;
+
+		// Determine the action:actor value if not passed explicitly in the options.
+		// If the element is not the page/document, then use its ID (if available) as the actor in the action:actor value.
+		if(opts.action === "") {
+			if(opts.element !== document.documentElement) {
+				opts.action = "mouseleave:" + this.getTargetName(opts.element);
+			} else {
+				opts.action = "mouseleave:page";
+			}
+		}
 		
 		var cookies = this.cookies;
 		setTimeout(function() {
@@ -449,6 +465,8 @@ module.exports = {
 
 					_delayTimer = setTimeout(function() {
 						if(!cookies.get(leaveKey)) {
+							// The label will contain the time in seconds it took to leave
+							opts.label = (tbpContext.timeSinceLoad()/1000);
 							tbpContext.log("Sending event for leaving.", "info");
 							tbpContext.emitEvent(opts);
 						} else {
@@ -496,16 +514,11 @@ module.exports = {
 			"label": "",
 			"element": null
 		}, opts);
-
 		var tbpContext = this;
 
 		// We need a form element to be passed.
-		if(!opts.element) {
-			return;
+		if(opts.element) {
 		}
-
-
-
 	},
 	/**
 	 * Emits events for the period of time it took to complete a form.
@@ -523,14 +536,86 @@ module.exports = {
 			"label": "",
 			"element": null
 		}, opts);
-
 		var tbpContext = this;
 
 		// We need a form element to be passed.
-		if(!opts.element) {
-			return;
+		if(opts.element) {
 		}
+	},
+	/**
+	 * The time, in seconds, it took the visitor to engage with a given element and event type (click by default).
+	 * This could be the time it took a visitor to click a button or it could be the time it took
+	 * for a visitor to focus a form input field or to start typing into an input field.
+	 * Time to click a call to action, time to login, register, etc.
+	 *
+	 * Note: If a form element is passed, a listener will be applied to all of its input fields looking
+	 * for an onchange event.
+	 * 
+	 * @param  {Object} opts
+	 */
+	timeToEngage: function(opts) {
+		opts = this.extend({
+			"_method": "timeToEngage",
+			"category": "behavior",
+			"action": "timeToEngage",
+			"label": "",
+			"element": null,
+			"event": "click"
+		}, opts);
+		var tbpContext = this;
 
+		if(opts.element) {
+			opts.action = "timeToEngage:" + this.getTargetName(opts.element);
+
+			var tteFn = function() {
+				opts.element.removeEventListener(opts.event, tteFn);
+				opts.label = (tbpContext.timeSinceLoad()/1000);
+				tbpContext.emitEvent(opts);
+			};
+
+			if(opts.element.tagName.toLowerCase() === "form") {
+				// Special handler for forms. Each input field will have a listener, so this needs to remove itself from all other inputs for the parent form.
+				var tteFormFn = function(e) {
+					e.target.removeEventListener(e.type, tteFormFn);
+					for(var i=0; i < e.target.form.elements.length; i++) {
+						if(e.target.form.elements[i].type !== "fieldset") {
+							e.target.form.elements[i].removeEventListener(e.type, tteFormFn);
+						}
+					}
+					opts.label = (tbpContext.timeSinceLoad()/1000);
+					tbpContext.emitEvent(opts);
+				};
+
+				for(var i=0; i < opts.element.elements.length; i++) {
+					switch(opts.element.elements[i].type) {
+						default:
+							// We'll use focus over click, but other valid events include; keypress, keyup, keydown, and change
+							// For forms, the opts.event is applied to input fields.
+							// Note: Probably a bad idea for a web page to start a form input field off as being focused and 
+							// in such a case, "change" may be a better event. Personally, I think "change" is the best event 
+							// because clicking happens by "accident" sometimes. So auto_detect.js will use change.
+							if(opts.event === "click") {
+								opts.event = "focus";
+							}
+							opts.element.elements[i].addEventListener(opts.event, tteFormFn);
+							break;
+						case "fieldset":
+							// nada
+							break;
+						case "submit":
+							// do nothing here for now - submit could navigate the user away and we'd have to hijack the process like linkOut()
+							// and I don't see the value in it just yet...input fields should be changed by now right?
+							// 
+							// on click is the one to use here regardless of opts.event
+							// el.addEventListener("click", tteFn(el, "click"));
+							break;
+					}
+				}
+
+			} else {
+				opts.element.addEventListener(opts.event, tteFn);
+			}
+		}
 	},
 	/**
 	 * Emits events for periods of inactivity on a page.
@@ -586,6 +671,7 @@ module.exports = {
 			"category": "behavior",
 			"action": "inactive",
 			"label": "",
+			"nonInteraction": true,
 			"periods": [60, 180, 300],
 			// "timeToDisengage": 60, // can take lowest period for this. an event will be emitted that takes time since load to the period. 
 			// that is how long it took a visitor to become inactive...so analytics reports can segment this. users are inactive after 3 minutes let's say.

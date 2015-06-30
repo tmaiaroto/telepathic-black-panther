@@ -1,9 +1,7 @@
-// Make ki available as $ki not $ (to avoid jQuery conflict) and because ki.ie8.js references $ki global.
-// TODO: Maybe address that, but I don't care if there's a simple selector hanging out.
-window.$ki = require('./ki.ie8.js');
-
 (function() {
-	
+	// Make this available on the window for convenience and as $ki so it doesn't conflict with $
+	window.$ki = require('./ki.ie8.js');
+
 	Tbp = (function() {
 		var defaults = {
 			debug: false,
@@ -13,26 +11,24 @@ window.$ki = require('./ki.ie8.js');
 			// We also, by default, push events to the dataLayer (commonly used by GTM and many other things) 
 			// pass an array in here, `dataLayer` || [] used by default if this is true
 			dataLayer: true,
-			// For events
-			category: "object",
-			action: "click",
-			label: null,
-			value: null,
 			// Visitor info
-			clientId: null,
+			clientId: null
 		};
 
 		/**
 		 * Telepathic Black Panther
 		 * 
-		 * @param {object} opts Some options used by Tbp in various places
+		 * @param {object} config Some configuration options used by Tbp
 		*/
-		function Tbp(opts) {
+		function Tbp(config) {
 			// Tbp() or new Tbp() will work this way.
-			if (!(this instanceof Tbp)) return new Tbp(opts);
+			if (!(this instanceof Tbp)) return new Tbp(config);
 
+			// Shortcut Google Analytics, provide empty function if it doesn't exist so things don't bark at us elsewhere.
 			if (typeof window.ga === "undefined") {
-				console.warn("Google Analytics not found.");
+				if(console !== undefined && console.warn !== undefined) {
+					console.warn("Google Analytics not found.");
+				}
 				this.ga = function(){};
 			} else {
 				this.ga = window.ga;
@@ -42,13 +38,28 @@ window.$ki = require('./ki.ie8.js');
 				defaults.clientId = tracker.get('clientId');
 			});
 
-			// Extend defaults with options.
-			this.opts = this.extend(defaults, opts);
+			// Extend default config with passed config options.
+			this.config = this.extend(defaults, config);
+		
+			// Load other core modules (kept separate for organization, still using require() for them).
+			this.extend(this, require('./core.js'));
+			this.extend(this, require('./engagement.js'));
+			this.extend(this, require('./social.js'));
+			this.extend(this, require('./auto_detect.js'));
+
+			// Load some 3rd party modules.
+			this.bus = require('../node_modules/minibus/minibus.js').create();
+			this.analysis = require('./analysis.js');
+			this.cookies = require('../node_modules/cookies-js/src/cookies.js');
+
+			// Shortcut $ki.
+			this.extend($ki.prototype, require('./ki.plugins.js'));
+			this.$ = $ki;
 
 			// Setup auto detection for everything. If an array was passed then only on those defined methods (names of functions).
-			if(this.opts.autoDetect === true) {
+			if(this.config.autoDetect === true) {
 				this.autoDetectEvents();
-			} else if (typeof(this.opts.autoDetect) === 'object') {
+			} else if (typeof(this.config.autoDetect) === 'object') {
 				this.autoDetectEvents(autoDetect);
 			}
 
@@ -56,9 +67,6 @@ window.$ki = require('./ki.ie8.js');
 			if(!this.cookies.get("_tbp_fv")) {
 				this.cookies.set("_tbp_fv", (new Date().getTime()), {expires: Infinity});
 			}
-
-			// Setup the panther bus
-			this.bus = this.minibus.create();
 
 			// There's going to be a few closures coming up here...
 			var tbpContext = this;
@@ -70,23 +78,24 @@ window.$ki = require('./ki.ie8.js');
 				tbpContext.log("Emitted Event", event);
 
 				// Push to the dataLayer
-				if(typeof(tbpContext.opts.dataLayer) === "object") {
-					tbpContext.opts.dataLayer.push(event);
-				} else if(tbpContext.opts.dataLayer === true) {
+				if(typeof(tbpContext.config.dataLayer) === "object") {
+					tbpContext.config.dataLayer.push(event);
+				} else if(tbpContext.config.dataLayer === true) {
 					if(typeof(dataLayer) === "object") {
 						dataLayer.push(event);
 					}
 				}
 
 				// Push to Google Analytics
-				if(tbpContext.opts.ga && event.label !== "" && event.label !== null) {
+				if(tbpContext.config.ga && event.label !== "" && event.label !== null) {
 					tbpContext.log("Sending event to Google Analytics", "info");
 					ga('send', {
 						'hitType': 'event',
 						'eventCategory': event.category,
 						'eventAction': event.action,
 						'eventLabel': event.label,
-						'hitCallback': event.hitCallback || null
+						'hitCallback': event.hitCallback || null,
+						'nonInteraction': event.nonInteraction || false
 					});
 				} else {
 					// Regardless of whether or not Google Analytics is in use, call "hitCallback" if it was defined.
@@ -105,7 +114,7 @@ window.$ki = require('./ki.ie8.js');
 			// });
 
 			// Override push() on the dataLayer to catch changes to it.
-			if(this.opts.dataLayer) {
+			if(this.config.dataLayer) {
 				var handleDataLayerPush = function () {
 					for (var i = 0, n = this.length, l = arguments.length; i < l; i++, n++) {
 						tbpContext.bus.emit('dataLayer', this[n] = arguments[i], this);
@@ -115,16 +124,16 @@ window.$ki = require('./ki.ie8.js');
 				};
 
 				// Hopefully `dataLayer` will be an array already defined. However, some people may want to name it something different 
-				// and that's ok too because `this.opts.dataLayer` can be passed an array to use instead. If `dataLayer` doesn't exist yet, 
+				// and that's ok too because `this.config.dataLayer` can be passed an array to use instead. If `dataLayer` doesn't exist yet, 
 				// just make a new empty array to use.
-				if(typeof(this.opts.dataLayer) === "object") {
-					Object.defineProperty(this.opts.dataLayer, "push", {
+				if(typeof(this.config.dataLayer) === "object") {
+					Object.defineProperty(this.config.dataLayer, "push", {
 						configurable: false,
 						enumerable: false, // hide from for...in
 						writable: false,
 						value: handleDataLayerPush
 					});
-				} else if(this.opts.dataLayer === true) {
+				} else if(this.config.dataLayer === true) {
 					if(typeof(dataLayer) === "object") {
 						Object.defineProperty(dataLayer, "push", {
 							configurable: false,
@@ -156,26 +165,13 @@ window.$ki = require('./ki.ie8.js');
 				return arguments[0];
 			},
 			/**
-			 * A simple hash function.
-			 *
-			 * @param  {String}  str    String to hash
-			 * @param  {Boolean} retStr Return a string if true, else number
-			 * @return {mixed} 			Hashed string as a numeric value -2^31 to 2^31
-			 */
-			hashCode: function(str, retStr) {
-				for(var ret = 0, i = 0, len = str.length; i < len; i++) {
-					ret = (31 * ret + str.charCodeAt(i)) << 0;
-				}
-				return retStr ? parseInt(ret):ret;
-			},
-			/**
 			 * A simple console log wrapper that first checks if debug mode is on.
 			 *
 			 * @var {mixed} message The string message to log
 			 * @var {mixed} obj     Either an object to log out or a string that will be matched for a log level that might change the color of the message
 			*/
 			log: function(message, obj) {
-				if(this.opts.debug && console !== undefined) {
+				if(this.config.debug && console !== undefined) {
 					var style = "";
 					switch(obj) {
 						case "warn":
@@ -204,27 +200,12 @@ window.$ki = require('./ki.ie8.js');
 			 * @param  {mixed} obj Object to print to the console
 			 */
 			dir: function(obj) {
-				if(this.opts.debug && console !== undefined) {
+				if(this.config.debug && console !== undefined) {
 					console.dir(obj);
 				}
 			}
 		};
 		
-		// Extend ki to include some more functions.
-		Tbp.prototype.extend($ki.prototype, require('./ki.plugins.js'));
-		Tbp.prototype.$ = $ki;
-
-		// Merge from modules
-		Tbp.prototype.extend(Tbp.prototype, require('./core.js'));
-		Tbp.prototype.extend(Tbp.prototype, require('./engagement.js'));
-		Tbp.prototype.extend(Tbp.prototype, require('./social.js'));
-		Tbp.prototype.extend(Tbp.prototype, require('./auto_detect.js'));
-
-		// Add some more modules tucked out of the way
-		Tbp.prototype.minibus = require('../node_modules/minibus/minibus.js');
-		Tbp.prototype.analysis = require('./analysis.js');
-		Tbp.prototype.cookies = require('../node_modules/cookies-js/src/cookies.js');
-
 		return Tbp;
 	})();
 	module.exports = Tbp;

@@ -717,7 +717,7 @@ module.exports = {
 module.exports = {
 	autoDetectEvents: function() {
 		var tbpContext = this;
-		var methods = (typeof(this.opts.autoDetect) === 'object') ? methods:'all';
+		var methods = (typeof(this.config.autoDetect) === 'object') ? methods:'all';
 
 		tbpContext.log("Tbp.autoDetectEvents() Analyzing the page to watch for the following methods:", methods);
 
@@ -772,18 +772,24 @@ module.exports = {
 			tbpContext.inactivity();
 		}
 		
+		// Detect time to engage the form(s) on the page.
+		if(methods.indexOf('timeToEngage') >= 0 || methods === 'all') {
+			$ki('form').each(function(el) {
+				tbpContext.timeToEngage({element: el});
+			});
+		}
+		
 		// Detect form abandonment.
 		if(methods.indexOf('formAbandonment') >= 0 || methods === 'all') {
 			// tbpContext.formAbandonment();
 		}
-		
 
 	}
 };
 },{}],5:[function(require,module,exports){
 module.exports = {
 	/**
-	 * In miliseconds, when this script has loaded. Not quite on DOM ready, but close.
+	 * In milliseconds, when this script has loaded. Not quite on DOM ready, but close.
 	 * Useful in mitigating false engagements, etc.
 	 * 
 	 * @type {Date}
@@ -792,10 +798,72 @@ module.exports = {
 	/**
 	 * Returns how long it's been since this script was loaded.
 	 * 
-	 * @return {number} Time elapsed in miliseconds
+	 * @return {number} Time elapsed in milliseconds
 	*/
 	timeSinceLoad: function() {
 		return ((new Date()).getTime() - this.loadTime);
+	},
+	/**
+	 * A simple hash function.
+	 *
+	 * @param  {String}  str    String to hash
+	 * @param  {Boolean} retStr Return a string if true, else number
+	 * @return {mixed} 			Hashed string as a numeric value -2^31 to 2^31
+	 */
+	hashCode: function(str, retStr) {
+		for(var ret = 0, i = 0, len = str.length; i < len; i++) {
+			ret = (31 * ret + str.charCodeAt(i)) << 0;
+		}
+		return retStr ? parseInt(ret):ret;
+	},
+	/**
+	 * Returns a string value for use as an "target" in an "action:target" value.
+	 * We can't always assume elements on the page have an ID, so we need to use
+	 * a value that gives as much detail to the reporter as possible for helping them
+	 * identify the element on the page involved in the event.
+	 *
+	 * This isn't necessary if a specific action value is passed in the options 
+	 * to any event, but for automation purposes this will be used.
+	 * 
+	 * @return {string} The target value to be combined, for example; "action:" + target
+	 */
+	getTargetName: function(element) {
+		var tgtStr = "";
+		if(element) {
+			// $ki() can return an array. If there's only one item in it. Try that.
+			if(element.tagName === undefined && element.length == 1) {
+				element = element[0];
+			}
+			if(element.tagName !== undefined) {
+				// The element can have a ```panther-target``` attribute for this case. Prefer that if set.
+				// This, of course, is not automatic and requires some manual HTML adjustment. 
+				if(element.getAttribute("panther-target")) {
+					tgtStr = element.getAttribute("panther-target");
+				} else {
+					// If not, we'll use the best guess we have. Note that this may not be as user friendly 
+					// depending on how many similar elements are on the page. If we're talking about a "div" 
+					// for example...Good luck...
+					
+					// First, always begin with the tag name.
+					tgtStr = element.tagName;
+
+					// Then the ID if set and we're done since there's only one ID per page. Simple.
+					if(element.id !== "") {
+						tgtStr += "#" + element.id;
+					} else {
+						// Try the classList. Of course it's very possible for many elements to use the same class(es).
+						if(element.classList.length > 0) {
+							tgtStr += "." + element.classList.toString();
+						} else {
+							// No classes? Position on page? -- this could vary greatly and is up to the client device...so no.
+							// var offset = $ki(element).offset();
+							// tgtStr += "(x=" + offset.left + ",y=" + offset.top + ")";
+						}
+					}
+				}
+			}
+		}
+		return tgtStr;
 	},
 	/**
 	 * A wrapper around minibus that automatically adds the time the event occurred. 
@@ -874,9 +942,9 @@ module.exports = {
  */
 },{}],7:[function(require,module,exports){
 /**
- * The engagement.js module includes functions that track events related to engagement.
- * How are visitors engaging with a page? Are they reading the content? Commenting?
- * Filling out forms? Or are they getting stuck on forms? Do they abandom them?
+ * The engagement.js module includes functions that track events related to a visitor's behavior
+ * and level of engagement. How are visitors engaging with a page? Are they reading the content? 
+ * Commenting? Filling out forms? Or are they getting stuck on forms? Do they abandom them?
  * These kind of questions are answered by the events this module sends to GA.
  * 
 */
@@ -904,8 +972,8 @@ module.exports = {
 			"xMin": 0,
 			"yMin": 1,
 			// for GA events specifically
-			"category": "page",
-			"action": "read",
+			"category": "behavior",
+			"action": "read:page",
 			"label": ""
 		}, opts);
 
@@ -980,8 +1048,8 @@ module.exports = {
 			"_method": "scrolledPage",
 			"minTime": 2,
 			"initialScrollRequired": true,
-			"category": "page",
-			"action": "scroll"
+			"category": "behavior",
+			"action": "scroll:page"
 		}, opts);
 
 		var tbpContext = this;
@@ -1079,8 +1147,8 @@ module.exports = {
 			"element": false,
 			"elementEvent": false,
 			"trackDomainOnly": false,
-			"category": "outbound",
-			"action": "navigate",
+			"category": "navigation",
+			"action": "outbound",
 			"label": ""
 		}, opts);
 
@@ -1169,8 +1237,8 @@ module.exports = {
 	hashChange: function(opts) {
 		opts = this.extend({
 			"_method": "hashChange",
-			"category": "page",
-			"action": "navigate",
+			"category": "navigation",
+			"action": "hashbang",
 			"label": ""
 		}, opts);
 		var tbpContext = this;
@@ -1201,8 +1269,8 @@ module.exports = {
 	historyNavigate: function(opts) {
 		opts = this.extend({
 			"_method": "historyNavigate",
-			"category": "history",
-			"action": "navigate",
+			"category": "navigation",
+			"action": "history",
 			"label": ""
 		}, opts);
 		var tbpContext = this;
@@ -1279,8 +1347,9 @@ module.exports = {
 		opts = this.extend({
 			"_method": "leave",
 			"category": "behavior",
-			"action": "mouseleave",
-			"label": "page",
+			"action": "",
+			"label": "",
+			"nonInteraction": true,
 			"trackOnce": true,
 			"perPage": true,
 			"delay": 1000,
@@ -1290,6 +1359,11 @@ module.exports = {
 			"element": document.documentElement
 		}, opts);
 
+		// Ensure an element was passed.
+		if(opts.element === "") {
+			return;
+		}
+
 		var tbpContext = this;
 
 		// The best we can do, probably not a good idea to pass an element without an id. Unless it's unique HTML code (which <html> and <body> will be of course).
@@ -1297,6 +1371,16 @@ module.exports = {
 		var leaveKey = '_tbp_' + this.hashCode("leave_" + elemId, true);
 		var path = opts.perPage ? window.location.pathname:"/";
 		var _delayTimer = null;
+
+		// Determine the action:actor value if not passed explicitly in the options.
+		// If the element is not the page/document, then use its ID (if available) as the actor in the action:actor value.
+		if(opts.action === "") {
+			if(opts.element !== document.documentElement) {
+				opts.action = "mouseleave:" + this.getTargetName(opts.element);
+			} else {
+				opts.action = "mouseleave:page";
+			}
+		}
 		
 		var cookies = this.cookies;
 		setTimeout(function() {
@@ -1324,6 +1408,8 @@ module.exports = {
 
 					_delayTimer = setTimeout(function() {
 						if(!cookies.get(leaveKey)) {
+							// The label will contain the time in seconds it took to leave
+							opts.label = (tbpContext.timeSinceLoad()/1000);
 							tbpContext.log("Sending event for leaving.", "info");
 							tbpContext.emitEvent(opts);
 						} else {
@@ -1371,16 +1457,11 @@ module.exports = {
 			"label": "",
 			"element": null
 		}, opts);
-
 		var tbpContext = this;
 
 		// We need a form element to be passed.
-		if(!opts.element) {
-			return;
+		if(opts.element) {
 		}
-
-
-
 	},
 	/**
 	 * Emits events for the period of time it took to complete a form.
@@ -1398,14 +1479,86 @@ module.exports = {
 			"label": "",
 			"element": null
 		}, opts);
-
 		var tbpContext = this;
 
 		// We need a form element to be passed.
-		if(!opts.element) {
-			return;
+		if(opts.element) {
 		}
+	},
+	/**
+	 * The time, in seconds, it took the visitor to engage with a given element and event type (click by default).
+	 * This could be the time it took a visitor to click a button or it could be the time it took
+	 * for a visitor to focus a form input field or to start typing into an input field.
+	 * Time to click a call to action, time to login, register, etc.
+	 *
+	 * Note: If a form element is passed, a listener will be applied to all of its input fields looking
+	 * for an onchange event.
+	 * 
+	 * @param  {Object} opts
+	 */
+	timeToEngage: function(opts) {
+		opts = this.extend({
+			"_method": "timeToEngage",
+			"category": "behavior",
+			"action": "timeToEngage",
+			"label": "",
+			"element": null,
+			"event": "click"
+		}, opts);
+		var tbpContext = this;
 
+		if(opts.element) {
+			opts.action = "timeToEngage:" + this.getTargetName(opts.element);
+
+			var tteFn = function() {
+				opts.element.removeEventListener(opts.event, tteFn);
+				opts.label = (tbpContext.timeSinceLoad()/1000);
+				tbpContext.emitEvent(opts);
+			};
+
+			if(opts.element.tagName.toLowerCase() === "form") {
+				// Special handler for forms. Each input field will have a listener, so this needs to remove itself from all other inputs for the parent form.
+				var tteFormFn = function(e) {
+					e.target.removeEventListener(e.type, tteFormFn);
+					for(var i=0; i < e.target.form.elements.length; i++) {
+						if(e.target.form.elements[i].type !== "fieldset") {
+							e.target.form.elements[i].removeEventListener(e.type, tteFormFn);
+						}
+					}
+					opts.label = (tbpContext.timeSinceLoad()/1000);
+					tbpContext.emitEvent(opts);
+				};
+
+				for(var i=0; i < opts.element.elements.length; i++) {
+					switch(opts.element.elements[i].type) {
+						default:
+							// We'll use focus over click, but other valid events include; keypress, keyup, keydown, and change
+							// For forms, the opts.event is applied to input fields.
+							// Note: Probably a bad idea for a web page to start a form input field off as being focused and 
+							// in such a case, "change" may be a better event. Personally, I think "change" is the best event 
+							// because clicking happens by "accident" sometimes. So auto_detect.js will use change.
+							if(opts.event === "click") {
+								opts.event = "focus";
+							}
+							opts.element.elements[i].addEventListener(opts.event, tteFormFn);
+							break;
+						case "fieldset":
+							// nada
+							break;
+						case "submit":
+							// do nothing here for now - submit could navigate the user away and we'd have to hijack the process like linkOut()
+							// and I don't see the value in it just yet...input fields should be changed by now right?
+							// 
+							// on click is the one to use here regardless of opts.event
+							// el.addEventListener("click", tteFn(el, "click"));
+							break;
+					}
+				}
+
+			} else {
+				opts.element.addEventListener(opts.event, tteFn);
+			}
+		}
 	},
 	/**
 	 * Emits events for periods of inactivity on a page.
@@ -1461,6 +1614,7 @@ module.exports = {
 			"category": "behavior",
 			"action": "inactive",
 			"label": "",
+			"nonInteraction": true,
 			"periods": [60, 180, 300],
 			// "timeToDisengage": 60, // can take lowest period for this. an event will be emitted that takes time since load to the period. 
 			// that is how long it took a visitor to become inactive...so analytics reports can segment this. users are inactive after 3 minutes let's say.
@@ -1704,12 +1858,10 @@ module.exports = {
 	}
 };
 },{}],10:[function(require,module,exports){
-// Make ki available as $ki not $ (to avoid jQuery conflict) and because ki.ie8.js references $ki global.
-// TODO: Maybe address that, but I don't care if there's a simple selector hanging out.
-window.$ki = require('./ki.ie8.js');
-
 (function() {
-	
+	// Make this available on the window for convenience and as $ki so it doesn't conflict with $
+	window.$ki = require('./ki.ie8.js');
+
 	Tbp = (function() {
 		var defaults = {
 			debug: false,
@@ -1719,26 +1871,24 @@ window.$ki = require('./ki.ie8.js');
 			// We also, by default, push events to the dataLayer (commonly used by GTM and many other things) 
 			// pass an array in here, `dataLayer` || [] used by default if this is true
 			dataLayer: true,
-			// For events
-			category: "object",
-			action: "click",
-			label: null,
-			value: null,
 			// Visitor info
-			clientId: null,
+			clientId: null
 		};
 
 		/**
 		 * Telepathic Black Panther
 		 * 
-		 * @param {object} opts Some options used by Tbp in various places
+		 * @param {object} config Some configuration options used by Tbp
 		*/
-		function Tbp(opts) {
+		function Tbp(config) {
 			// Tbp() or new Tbp() will work this way.
-			if (!(this instanceof Tbp)) return new Tbp(opts);
+			if (!(this instanceof Tbp)) return new Tbp(config);
 
+			// Shortcut Google Analytics, provide empty function if it doesn't exist so things don't bark at us elsewhere.
 			if (typeof window.ga === "undefined") {
-				console.warn("Google Analytics not found.");
+				if(console !== undefined && console.warn !== undefined) {
+					console.warn("Google Analytics not found.");
+				}
 				this.ga = function(){};
 			} else {
 				this.ga = window.ga;
@@ -1748,13 +1898,28 @@ window.$ki = require('./ki.ie8.js');
 				defaults.clientId = tracker.get('clientId');
 			});
 
-			// Extend defaults with options.
-			this.opts = this.extend(defaults, opts);
+			// Extend default config with passed config options.
+			this.config = this.extend(defaults, config);
+		
+			// Load other core modules (kept separate for organization, still using require() for them).
+			this.extend(this, require('./core.js'));
+			this.extend(this, require('./engagement.js'));
+			this.extend(this, require('./social.js'));
+			this.extend(this, require('./auto_detect.js'));
+
+			// Load some 3rd party modules.
+			this.bus = require('../node_modules/minibus/minibus.js').create();
+			this.analysis = require('./analysis.js');
+			this.cookies = require('../node_modules/cookies-js/src/cookies.js');
+
+			// Shortcut $ki.
+			this.extend($ki.prototype, require('./ki.plugins.js'));
+			this.$ = $ki;
 
 			// Setup auto detection for everything. If an array was passed then only on those defined methods (names of functions).
-			if(this.opts.autoDetect === true) {
+			if(this.config.autoDetect === true) {
 				this.autoDetectEvents();
-			} else if (typeof(this.opts.autoDetect) === 'object') {
+			} else if (typeof(this.config.autoDetect) === 'object') {
 				this.autoDetectEvents(autoDetect);
 			}
 
@@ -1762,9 +1927,6 @@ window.$ki = require('./ki.ie8.js');
 			if(!this.cookies.get("_tbp_fv")) {
 				this.cookies.set("_tbp_fv", (new Date().getTime()), {expires: Infinity});
 			}
-
-			// Setup the panther bus
-			this.bus = this.minibus.create();
 
 			// There's going to be a few closures coming up here...
 			var tbpContext = this;
@@ -1776,23 +1938,24 @@ window.$ki = require('./ki.ie8.js');
 				tbpContext.log("Emitted Event", event);
 
 				// Push to the dataLayer
-				if(typeof(tbpContext.opts.dataLayer) === "object") {
-					tbpContext.opts.dataLayer.push(event);
-				} else if(tbpContext.opts.dataLayer === true) {
+				if(typeof(tbpContext.config.dataLayer) === "object") {
+					tbpContext.config.dataLayer.push(event);
+				} else if(tbpContext.config.dataLayer === true) {
 					if(typeof(dataLayer) === "object") {
 						dataLayer.push(event);
 					}
 				}
 
 				// Push to Google Analytics
-				if(tbpContext.opts.ga && event.label !== "" && event.label !== null) {
+				if(tbpContext.config.ga && event.label !== "" && event.label !== null) {
 					tbpContext.log("Sending event to Google Analytics", "info");
 					ga('send', {
 						'hitType': 'event',
 						'eventCategory': event.category,
 						'eventAction': event.action,
 						'eventLabel': event.label,
-						'hitCallback': event.hitCallback || null
+						'hitCallback': event.hitCallback || null,
+						'nonInteraction': event.nonInteraction || false
 					});
 				} else {
 					// Regardless of whether or not Google Analytics is in use, call "hitCallback" if it was defined.
@@ -1811,7 +1974,7 @@ window.$ki = require('./ki.ie8.js');
 			// });
 
 			// Override push() on the dataLayer to catch changes to it.
-			if(this.opts.dataLayer) {
+			if(this.config.dataLayer) {
 				var handleDataLayerPush = function () {
 					for (var i = 0, n = this.length, l = arguments.length; i < l; i++, n++) {
 						tbpContext.bus.emit('dataLayer', this[n] = arguments[i], this);
@@ -1821,16 +1984,16 @@ window.$ki = require('./ki.ie8.js');
 				};
 
 				// Hopefully `dataLayer` will be an array already defined. However, some people may want to name it something different 
-				// and that's ok too because `this.opts.dataLayer` can be passed an array to use instead. If `dataLayer` doesn't exist yet, 
+				// and that's ok too because `this.config.dataLayer` can be passed an array to use instead. If `dataLayer` doesn't exist yet, 
 				// just make a new empty array to use.
-				if(typeof(this.opts.dataLayer) === "object") {
-					Object.defineProperty(this.opts.dataLayer, "push", {
+				if(typeof(this.config.dataLayer) === "object") {
+					Object.defineProperty(this.config.dataLayer, "push", {
 						configurable: false,
 						enumerable: false, // hide from for...in
 						writable: false,
 						value: handleDataLayerPush
 					});
-				} else if(this.opts.dataLayer === true) {
+				} else if(this.config.dataLayer === true) {
 					if(typeof(dataLayer) === "object") {
 						Object.defineProperty(dataLayer, "push", {
 							configurable: false,
@@ -1862,26 +2025,13 @@ window.$ki = require('./ki.ie8.js');
 				return arguments[0];
 			},
 			/**
-			 * A simple hash function.
-			 *
-			 * @param  {String}  str    String to hash
-			 * @param  {Boolean} retStr Return a string if true, else number
-			 * @return {mixed} 			Hashed string as a numeric value -2^31 to 2^31
-			 */
-			hashCode: function(str, retStr) {
-				for(var ret = 0, i = 0, len = str.length; i < len; i++) {
-					ret = (31 * ret + str.charCodeAt(i)) << 0;
-				}
-				return retStr ? parseInt(ret):ret;
-			},
-			/**
 			 * A simple console log wrapper that first checks if debug mode is on.
 			 *
 			 * @var {mixed} message The string message to log
 			 * @var {mixed} obj     Either an object to log out or a string that will be matched for a log level that might change the color of the message
 			*/
 			log: function(message, obj) {
-				if(this.opts.debug && console !== undefined) {
+				if(this.config.debug && console !== undefined) {
 					var style = "";
 					switch(obj) {
 						case "warn":
@@ -1910,27 +2060,12 @@ window.$ki = require('./ki.ie8.js');
 			 * @param  {mixed} obj Object to print to the console
 			 */
 			dir: function(obj) {
-				if(this.opts.debug && console !== undefined) {
+				if(this.config.debug && console !== undefined) {
 					console.dir(obj);
 				}
 			}
 		};
 		
-		// Extend ki to include some more functions.
-		Tbp.prototype.extend($ki.prototype, require('./ki.plugins.js'));
-		Tbp.prototype.$ = $ki;
-
-		// Merge from modules
-		Tbp.prototype.extend(Tbp.prototype, require('./core.js'));
-		Tbp.prototype.extend(Tbp.prototype, require('./engagement.js'));
-		Tbp.prototype.extend(Tbp.prototype, require('./social.js'));
-		Tbp.prototype.extend(Tbp.prototype, require('./auto_detect.js'));
-
-		// Add some more modules tucked out of the way
-		Tbp.prototype.minibus = require('../node_modules/minibus/minibus.js');
-		Tbp.prototype.analysis = require('./analysis.js');
-		Tbp.prototype.cookies = require('../node_modules/cookies-js/src/cookies.js');
-
 		return Tbp;
 	})();
 	module.exports = Tbp;

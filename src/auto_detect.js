@@ -10,7 +10,7 @@
 module.exports = {
 	autoDetectEvents: function() {
 		var tbpContext = this;
-		var methods = (typeof(this.opts.autoDetect) === 'object') ? methods:'all';
+		var methods = (typeof(this.config.autoDetect) === 'object') ? methods:'all';
 
 		tbpContext.log("Tbp.autoDetectEvents() Analyzing the page to watch for the following methods:", methods);
 
@@ -65,11 +65,17 @@ module.exports = {
 			tbpContext.inactivity();
 		}
 		
+		// Detect time to engage the form(s) on the page.
+		if(methods.indexOf('timeToEngage') >= 0 || methods === 'all') {
+			$ki('form').each(function(el) {
+				tbpContext.timeToEngage({element: el});
+			});
+		}
+		
 		// Detect form abandonment.
 		if(methods.indexOf('formAbandonment') >= 0 || methods === 'all') {
 			// tbpContext.formAbandonment();
 		}
-		
 
 	}
 };
