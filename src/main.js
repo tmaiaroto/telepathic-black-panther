@@ -190,7 +190,11 @@
 					if(style !== "") {
 						console.log("%c" + message, style);
 					} else {
-						console.log(message, obj);
+						if(obj) {
+							console.log(message, obj);
+						} else {
+							console.log(message);
+						}
 					}
 				}
 			},

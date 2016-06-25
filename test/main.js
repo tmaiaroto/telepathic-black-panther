@@ -15,7 +15,7 @@ describe('config', function() {
 	});
 });
 
-describe('gaProxy', function() {
+describe('gaProxy()', function() {
     it('should be function', function() {
         expect(typeof(panther.ga)).toMatch('function');
     });
@@ -27,13 +27,13 @@ describe('loadTime', function() {
     });
 });
 
-describe('timeSinceLoad', function() {
+describe('timeSinceLoad()', function() {
     it('should return greater than zero', function() {
         expect(panther.timeSinceLoad()).toBeGreaterThan(0);
     });
 });
 
-describe('hashCode', function() {
+describe('hashCode()', function() {
 	it('should be function', function() {
         expect(typeof(panther.hashCode)).toMatch('function');
     });
@@ -47,7 +47,7 @@ describe('hashCode', function() {
 	});
 });
 
-describe('getTargetName', function() {
+describe('getTargetName()', function() {
 	it('should return the element tag name with the id value', function() {
 		var elem = document.createElement('div');
 		elem.setAttribute("id", "MyDiv");

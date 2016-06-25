@@ -1204,7 +1204,7 @@ module.exports = {
 			// Redirect if target is not _blank, on this callback (after the event has been emitted).
 			if(opts.element && opts.element.target !== '_blank') {
 				// tbpContext.log("Tbp.linkOut() The user will now be redirected to " + opts.element.href);
-				if(tbpContext.opts.debug) {
+				if(opts.debug) {
 					return setTimeout(function(){
 						continueLinkOut();
 						return;
@@ -2049,7 +2049,11 @@ module.exports = {
 					if(style !== "") {
 						console.log("%c" + message, style);
 					} else {
-						console.log(message, obj);
+						if(obj) {
+							console.log(message, obj);
+						} else {
+							console.log(message);
+						}
 					}
 				}
 			},
