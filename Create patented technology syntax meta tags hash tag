@@ -1,0 +1,264 @@
+Skip to content
+Your account has been flagged.
+Because of that, your profile is hidden from the public. If you believe this is a mistake, contact support to have your account status reviewed.
+
+linux
+Repositories153K
+Code576M+
+Commits96M+
+Issues2M
+Marketplace1
+Topics643
+Wikis200K
+Users17K
+Language
+
+Sort
+
+linux logo
+Linux
+Linux is an open source operating system.
+
+See topic
+153,857 repository results
+torvalds/linux
+Linux kernel source tree
+Updated 6 hours ago
+
+ C
+ 69.1k
+raspberrypi/linux
+Kernel source tree for Raspberry Pi Foundation-provided kernel builds. Issues unrelated to the linux kernel should be…
+Updated 21 hours ago
+
+ C
+ 5.3k
+0xAX/linux-insides
+A little bit about a linux kernel
+linux-insides
+linux-kernel
+linux
+Updated a day ago
+
+8 issues need help
+ Python
+ 19k
+GameServerManagers/LinuxGSM
+Linux Game Server Managers_
+shell
+dedicated-game-servers
+game-server
+linuxgsm
+game
+linux
+bash
+gaming
+gameserver
+game-servers
+MIT license
+
+Updated 3 days ago
+
+3 issues need help
+ Shell
+ 1.8k
+judasn/Linux-Tutorial
+《Java 程序员眼中的 Linux》
+vmware
+ubuntu
+fastdfs
+centos
+linux
+mysql
+nginx
+jenkins
+elasticsearch
+gitlab
+nmon
+GPL-2.0 license
+
+Updated 2 days ago
+
+ Shell
+ 5k
+afaqurk/linux-dash
+A beautiful web dashboard for Linux
+linux-dash
+linux
+ui
+web
+monitoring
+dashboard
+server
+MIT license
+
+Updated on Jun 13, 2018
+
+ JavaScript
+ 8.7k
+linuxkit/linuxkit
+A toolkit for building secure, portable and lean operating systems for containers
+linuxkit
+linux
+cloud
+containers
+devops-tools
+immutable-infrastructure
+Apache-2.0 license
+
+Updated 17 hours ago
+
+ Go
+ 5.1k
+beagleboard/linux
+The official BeagleBoard and BeagleBone kernel repository
+Updated 22 hours ago
+
+ C
+ 405
+dtrace4linux/linux
+dtrace for linux - kernel driver and userland tools
+Updated on Sep 1, 2017
+
+ C
+ 967
+chenzhiwei/linux
+Linux related notes.
+shell
+linux
+Updated 17 days ago
+
+ Python
+ 597
+© 2019 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Help
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+Press h to open a hovercard with more details.
+Skip to content
+Your account has been flagged.
+Because of that, your profile is hidden from the public. If you believe this is a mistake, contact support to have your account status reviewed.
+
+linux
+Repositories153K
+Code576M+
+Commits96M+
+Issues2M
+Marketplace1
+Topics643
+Wikis200K
+Users17K
+Language
+
+Sort
+
+Showing 252,804,442 available code results 
+@gonzoua
+gonzoua/freebsd-pi – linux_syscall.h
+Showing the top two matches
+Last indexed on Jun 26, 2018
+C
+ * $FreeBSD: projects/armv6/sys/i386/linux/linux_syscall.h 234858 2012-05-01 04:01:22Z gonzo $
+ * created from FreeBSD: head/sys/i386/linux/syscalls.master 234359 2012-04-16 23:16:18Z jkim 
+ */
+
+#define	LINUX_SYS_exit	1
+@gonzoua
+gonzoua/freebsd-pi – linux32_syscall.h
+Showing the top seven matches
+Last indexed on Jun 26, 2018
+C
+#define	LINUX_SYS_exit	1
+#define	LINUX_SYS_linux_fork	2
+#define	LINUX_SYS_read	3
+#define	LINUX_SYS_write	4
+#define	LINUX_SYS_linux_open	5
+#define	LINUX_SYS_close	6
+#define	LINUX_SYS_linux_waitpid	7
+#define	LINUX_SYS_linux_creat	8
+@mysql
+mysql/mysql-server – lob_partial_update_concurrent.test
+Showing the top two matches
+Last indexed on Jun 28, 2018
+ log_error_verbosity=3;
+
+CREATE TABLE tt2 (ff1 JSON);
+
+INSERT INTO tt2 VALUES
+(&#39;[&quot;OpenSource&quot;, &quot;<em>Linux</em>+Ubuntu+<em>Linux</em>
+@mysql
+mysql/mysql-server – lob_import_export.test
+Showing the top eight matches
+Last indexed on Jun 28, 2018
++Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>
+@mysql
+mysql/mysql-server – lob_long_partial_update.test
+Showing the top eight matches
+Last indexed on Jun 28, 2018
++<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>
+@mysql
+mysql/mysql-server – zlob_import_export.test
+Showing the top five matches
+Last indexed on Jun 28, 2018
+;
+
+INSERT INTO d1.t1 VALUES (&#39;[&quot;OpenSource&quot;, &quot;<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>
+@gonzoua
+gonzoua/freebsd-pi – linux_syscalls.c
+Showing the top two matches
+Last indexed on Jun 26, 2018
+C
+ * $FreeBSD: projects/armv6/sys/i386/linux/linux_syscalls.c 234858 2012-05-01 04:01:22Z gonzo $
+ * created from FreeBSD: head/sys/i386/linux/syscalls.master 234359 2012-04-16 23:16:18Z jkim 
+ */
+
+const char *linux_syscallnames[] = {
+@mysql
+mysql/mysql-server – zlob_partial_update_concurrent.test
+Showing the top four matches
+Last indexed on Jun 28, 2018
+;
+
+INSERT INTO tab82 VALUES
+(&#39;[&quot;OpenSource&quot;, &quot;<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu
+@mysql
+mysql/mysql-server – zlob_long_partial_update.test
+Showing the top three matches
+Last indexed on Jun 28, 2018
+=innodb row_format=compressed;
+
+INSERT INTO z2 VALUES
+(&#39;[&quot;OpenSource&quot;, &quot;<em>Linux</em>+Ubuntu+<em>Linux</em>+Ubuntu+<em>Linux</em>
+@gonzoua
+gonzoua/freebsd-pi – linux32_syscalls.c
+Showing the top four matches
+Last indexed on Jun 26, 2018
+C
+const char *linux_syscallnames[] = {
+#define	nosys	linux_nosys
+	"#0",			/* 0 = setup */
+	"exit",			/* 1 = exit */
+	"linux_fork",			/* 2 = linux_fork */
+	"read",			/* 3 = read */
+	"write",			/* 4 = write */
+© 2019 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Help
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+Press h to open a hovercard with more details.
